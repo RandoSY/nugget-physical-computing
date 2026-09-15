@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Static Accurate SPST / 555 / 7400 / PIC Black Box Simulator</title>
+<style>
+:root{
+  --bg:#08101f; --panel:#121b31; --panel2:#0d1528; --ink:#eef4ff; --muted:#9fb0c8;
+  --line:#2b3a5c; --hi:#6ee787; --lo:#5f7fb5; --warn:#f5c451; --bad:#ff6b7a;
+  --hot:#76e4f7; --off:#26314d;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; color:var(--ink);
+  font:14px/1.35 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,#060b16,#101a33 55%,#07101f);
+  overflow:hidden;
+}
+.app{height:100vh;display:grid;grid-template-rows:auto auto auto 1fr auto;gap:8px;padding:10px;max-width:1500px;margin:0 auto}
+header,.toolbar,.tabs,.panel,.footerbar{border:1px solid var(--line);border-radius:16px;background:rgba(18,27,49,.92)}
+header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;gap:10px}
+h1{margin:0;font-size:20px}
+.subtitle{font-size:12px;color:var(--muted);margin-top:2px}
+.pillbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:#0b1326;color:var(--muted)}
+.pill strong{color:var(--ink)}
+button,select{
+  padding:8px 10px;border-radius:10px;border:1px solid var(--line);
+  background:#0b1224;color:var(--ink);font-weight:650;cursor:pointer
+}
+button.primary{background:#113452;border-color:#27779c}
+button.good{background:#103820;border-color:#2a8f49}
+button.warn{background:#4a350d;border-color:#a97916}
+button.bad{background:#471523;border-color:#a63852}
+.toolbar{padding:8px 10px;display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:8px}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.control{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px}
+.control label{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:6px}
+input[type=range]{width:100%;accent-color:#76e4f7}
+.mini{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:6px;padding:6px;overflow:hidden}
+.tab{padding:8px 12px;border:1px solid var(--line);border-radius:12px;background:#0d1528;color:var(--muted);cursor:pointer;white-space:nowrap}
+.tab.active{background:#17355a;color:var(--ink);border-color:#3b7bbd}
+main{min-height:0}.page{display:none;height:100%;min-height:0}.page.active{display:grid}
+.grid-main{grid-template-columns:1.15fr 1fr 1fr;grid-template-rows:1fr 1fr;gap:8px}
+.grid-two{grid-template-columns:1.28fr .82fr;gap:8px}
+.grid-serial{grid-template-columns:1fr .9fr;gap:8px}
+.panel{padding:12px;min-height:0;overflow:hidden}
+.panel h2{font-size:15px;margin:0 0 8px;color:#dbe8ff}.panel h3{font-size:13px;margin:10px 0 6px;color:#bdd0f0}
+.big{font-size:42px;font-weight:850;letter-spacing:-1px}
+.kv{display:grid;grid-template-columns:1fr auto;gap:6px 12px}
+.kv div{padding:3px 0;border-bottom:1px dashed rgba(159,176,200,.2)}
+.kv b{font-variant-numeric:tabular-nums}
+.terminal{height:100%;min-height:0;background:#050915;border:1px solid var(--line);border-radius:14px;padding:10px;font:12px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace;overflow:auto;color:#cce2ff;white-space:pre-wrap}
+.terminal .gsa{color:#87f7ff}.terminal .evt{color:#ffe18a}.terminal .err{color:#ff8fa0}
+.leds{display:flex;gap:10px;flex-wrap:wrap}
+.led{width:22px;height:22px;border-radius:50%;border:1px solid #3d4a68;background:var(--off);box-shadow:inset 0 0 10px rgba(0,0,0,.6)}
+.led.on.green{background:#60ee82;box-shadow:0 0 14px #60ee82}
+.led.on.red{background:#ff526b;box-shadow:0 0 14px #ff526b}
+.led.on.blue{background:#65a6ff;box-shadow:0 0 14px #65a6ff}
+.led.on.yellow{background:#f7d35b;box-shadow:0 0 14px #f7d35b}
+.bit{font-size:28px;font-weight:900;border:1px solid var(--line);border-radius:14px;background:#0d1427;padding:10px 14px;text-align:center;min-width:64px}
+.bit.on{background:#113820;border-color:#2a8f49;color:#7dff9a}
+.bit.off{color:#8aa0bf}
+.chiprow{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+.chip{border:1px solid var(--line);border-radius:14px;background:#1d2744;padding:10px;text-align:center}
+.chip .name{font-weight:700}.chip .state{font-size:22px;font-weight:900;color:var(--hot);margin-top:4px}
+.wirebox{height:460px;border:1px solid var(--line);border-radius:14px;background:#081123;overflow:hidden}
+.wirebox svg{width:100%;height:100%}
+.badge{display:inline-block;padding:3px 8px;border:1px solid var(--line);border-radius:999px;background:#0d1427;margin:2px}
+table.wiring{width:100%;border-collapse:collapse;font-size:13px}
+table.wiring th,table.wiring td{border:1px solid var(--line);padding:6px 8px;text-align:left}
+table.wiring th{background:#0d1528}
+.footerbar{padding:6px 10px;display:flex;justify-content:space-between;color:var(--muted);font-size:12px}
+.timeline{display:grid;grid-template-columns:repeat(20,1fr);gap:3px;margin-top:6px}
+.cell{height:20px;border-radius:4px;border:1px solid #2b3a5c;background:#1a2540}
+.cell.hi{background:#2c7d44}.cell.lo{background:#26314d}.cell.event{background:#f5c451}.cell.q{background:#6ee787}
+@media (max-width:1100px){
+  body{overflow:auto}.app{height:auto}
+  .toolbar,.grid-main,.grid-two,.grid-serial{grid-template-columns:1fr;grid-template-rows:auto}
+  .controls{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+  <div>
+    <h1>Static Accurate One-Bit Black Box Simulator</h1>
+    <div class="subtitle">SPST swith pull-up → 7400 NAND latch → PIC16F18424 black box → Nano serial bridge → GSA dashboard. Static display: no continuous redraw or oscillating graphics.</div>
+  </div>
+  <div class="pillbar">
+    <span class="pill">Display: <strong>STATIC</strong></span>
+    <span class="pill">PIC mode: <strong id="topMode">IDLE</strong></span>
+    <span class="pill">GSA lines: <strong id="topLines">0</strong></span>
+  </div>
+</header>
+
+<section class="toolbar">
+  <div class="controls">
+    <div class="control">
+      <label>555 period mode <output id="timerModeOut">manual tick</output></label>
+      <select id="timerMode">
+        <option value="manual">Manual tick only</option>
+        <option value="slow">Slow heartbeat, 1 Hz</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Switch bounce model <output id="bounceOut">off</output></label>
+      <select id="bounceMode">
+        <option value="none">No bounce</option>
+        <option value="one">One simulated bounce packet</option>
+      </select>
+    </div>
+    <div class="control">
+      <label>Contact quality <output id="dirtyOut">clean</output></label>
+      <select id="dirtyMode">
+        <option value="clean">Clean contact</option>
+        <option value="dirty">Dirty contact note only</option>
+      </select>
+    </div>
+  </div>
+  <div class="row">
+    <button id="toggleSpstBtn" class="primary">Toggle SPST</button>
+    <button id="momentaryBtn" class="primary">Momentary Close</button>
+    <button id="tick555Btn" class="primary">Advance 555 Tick</button>
+    <button id="resetLatchBtn" class="warn">Reset Latch</button>
+  </div>
+  <div class="row">
+    <button id="picResetBtn">PIC Reset Pulse</button>
+    <button id="clearBtn" class="bad">Clear Log</button>
+    <span class="mini">This version changes state only on button presses, except optional slow heartbeat.</span>
+  </div>
+</section>
+
+<nav class="tabs" id="tabs">
+  <div class="tab active" data-page="dashboard">Dashboard</div>
+  <div class="tab" data-page="schematic">Static Active Schematic</div>
+  <div class="tab" data-page="picpage">PIC Black Box</div>
+  <div class="tab" data-page="serial">GSA Serial</div>
+  <div class="tab" data-page="wiring">Wiring / Notes</div>
+</nav>
+
+<main>
+  <section class="page active grid-main" id="dashboard">
+    <div class="panel" style="grid-row:span 2">
+      <h2>Current Hardware State</h2>
+      <div class="big" id="bigState">OPEN</div>
+      <p class="mini">Open switch means the SPST node is pulled high. Closed switch pulls the node low, asserting SET_N on the 7400 latch.</p>
+      <h3>Observable Chain</h3>
+      <div class="chiprow">
+        <div class="chip"><div class="name">555 OUT</div><div class="state" id="chip555">0</div></div>
+        <div class="chip"><div class="name">SPST NODE</div><div class="state" id="chipNode">1</div></div>
+        <div class="chip"><div class="name">SET_N</div><div class="state" id="chipSet">1</div></div>
+        <div class="chip"><div class="name">LATCH Q</div><div class="state" id="chipQ">0</div></div>
+        <div class="chip"><div class="name">PIC</div><div class="state" id="chipPic">IDLE</div></div>
+      </div>
+      <h3>Recent Step History</h3>
+      <div class="mini">Each square is a discrete user action or 555 tick, not a continuously animated trace.</div>
+      <div id="timeline" class="timeline"></div>
+    </div>
+
+    <div class="panel">
+      <h2>PIC Indicators</h2>
+      <div class="leds">
+        <div id="ledGreen" class="led green"></div>
+        <div id="ledBlue" class="led blue"></div>
+        <div id="ledYellow" class="led yellow"></div>
+        <div id="ledRed" class="led red"></div>
+      </div>
+      <h3>Status Summary</h3>
+      <div class="kv" id="statusKv"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Latch Memory</h2>
+      <div class="row">
+        <div><div class="mini">Q</div><div id="bitQ" class="bit off">0</div></div>
+        <div><div class="mini">/Q</div><div id="bitNQ" class="bit on">1</div></div>
+      </div>
+      <p class="mini">Q remains latched until reset. This is the “one-bit memory” in the physical setup.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Recent GSA Lines</h2>
+      <div id="miniTerm" class="terminal"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Event Counters</h2>
+      <div class="kv" id="counterKv"></div>
+    </div>
+  </section>
+
+  <section class="page grid-two" id="schematic">
+    <div class="panel">
+      <h2>Static Active Schematic</h2>
+      <div class="mini">The schematic is redrawn only after a discrete state change. It does not constantly oscillate or repaint.</div>
+      <div class="wirebox" id="schematicBox" style="margin-top:10px"></div>
+    </div>
+    <div class="panel">
+      <h2>Live Nodes</h2>
+      <div class="kv" id="schematicKv"></div>
+      <h3>Physical Meaning</h3>
+      <p class="mini"><b>SPST open:</b> pull-up holds node at logic 1.</p>
+      <p class="mini"><b>SPST closed:</b> switch pulls node to ground, logic 0.</p>
+      <p class="mini"><b>SET_N:</b> active-low set input of 7400 latch.</p>
+      <p class="mini"><b>Q:</b> latched event bit read by PIC RA1.</p>
+      <p class="mini"><b>555 OUT:</b> a separate timing input read by PIC RA0.</p>
+    </div>
+  </section>
+
+  <section class="page grid-two" id="picpage">
+    <div class="panel">
+      <h2>PIC Black Box</h2>
+      <div class="big" id="picModeBig">IDLE</div>
+      <p class="mini">The PIC watches the pins, counts transitions, updates LEDs, and emits GSA text. It does not simulate sensors.</p>
+      <h3>Firmware Roles</h3>
+      <div id="picBadges"></div>
+    </div>
+    <div class="panel">
+      <h2>PIC Pins and Counters</h2>
+      <div class="kv" id="picKv"></div>
+    </div>
+  </section>
+
+  <section class="page grid-serial" id="serial">
+    <div class="panel">
+      <h2>Raw GSA Serial Stream</h2>
+      <div id="terminal" class="terminal"></div>
+    </div>
+    <div class="panel">
+      <h2>Manual Packet Test</h2>
+      <textarea id="manualPacket" style="width:100%;height:90px;background:#050915;color:#eef4ff;border:1px solid var(--line);border-radius:12px;padding:10px">GSA,DEVICE=PIC_BLACKBOX,MODE=MANUAL,SWITCH=SPST,Q=1</textarea>
+      <br><br>
+      <button id="injectBtn" class="primary">Inject Packet</button>
+      <h3>Parsed Object</h3>
+      <pre id="parsedOut" class="terminal" style="height:240px"></pre>
+    </div>
+  </section>
+
+  <section class="page grid-two" id="wiring">
+    <div class="panel">
+      <h2>Mirrored Wiring Table</h2>
+      <table class="wiring">
+        <thead><tr><th>Physical element</th><th>Connects to</th><th>Simulator behavior</th></tr></thead>
+        <tbody>
+          <tr><td>SPST switch</td><td>Switch node to GND when closed</td><td>Primary physical one-bit event</td></tr>
+          <tr><td>Pull-up resistor</td><td>Switch node to VCC</td><td>Open switch reads logic 1</td></tr>
+          <tr><td>SPST node</td><td>7400 SET_N and PIC RA2</td><td>Closed switch asserts SET_N = 0</td></tr>
+          <tr><td>7400 NAND latch Q</td><td>PIC RA1</td><td>Remembered event bit</td></tr>
+          <tr><td>555 OUT</td><td>PIC RA0</td><td>Manual or slow heartbeat tick</td></tr>
+          <tr><td>Reset button</td><td>7400 RESET_N</td><td>Clears Q</td></tr>
+          <tr><td>PIC RC0 UART TX</td><td>Arduino Nano serial bridge</td><td>GSA packet output</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="panel">
+      <h2>Display Design Correction</h2>
+      <p class="mini">This version removes the continuous animation loop that made the display distracting. The schematic and dashboard update only after explicit state changes.</p>
+      <p class="mini">The optional 1 Hz heartbeat changes only the 555 output and is deliberately slow. It can be left in manual mode for a completely static display.</p>
+      <p class="mini">No HX711 or unrelated sensor state is included.</p>
+    </div>
+  </section>
+</main>
+
+<div class="footerbar">
+  <span>Static event-driven prototype. No external libraries. No continuous schematic animation.</span>
+  <span id="clockText"></span>
+</div>
+</div>
+
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+
+const state = {
+  spstClosed: false,
+  spstNode: 1,
+  setN: 1,
+  resetN: 1,
+  q: 0,
+  nQ: 1,
+  out555: 0,
+  picMode: 'IDLE',
+  events: 0,
+  closes: 0,
+  opens: 0,
+  ticks: 0,
+  lines: 0,
+  terminal: [],
+  parsed: null,
+  history: [],
+  heartbeatTimer: null,
+  picLed: {green:0, blue:0, yellow:1, red:0}
+};
+
+function NAND(a,b){ return (!(a && b)) ? 1 : 0; }
+
+function recomputeLatch(){
+  const newQ = NAND(state.setN, state.nQ);
+  const newNQ = NAND(state.resetN, newQ);
+  state.q = newQ;
+  state.nQ = newNQ;
+}
+
+function pushHistory(kind){
+  state.history.push({kind, node:state.spstNode, q:state.q, out555:state.out555});
+  if(state.history.length > 20) state.history.shift();
+}
+
+function parseGSALine(line){
+  const parts = line.trim().split(',');
+  if(parts[0] !== 'GSA') return null;
+  const obj = {type:'GSA'};
+  for(let i=1;i<parts.length;i++){
+    const idx = parts[i].indexOf('=');
+    if(idx > 0) obj[parts[i].slice(0,idx)] = parts[i].slice(idx+1);
+  }
+  return obj;
+}
+
+function emit(line){
+  state.lines++;
+  state.parsed = parseGSALine(line) || {raw:line};
+  let kind = 'gsa';
+  if(line.includes('ERR')) kind = 'err';
+  else if(line.includes('SWITCH') || line.includes('LOGIC') || line.includes('TIMER'))  kind = 'evt';
+  state.terminal.push({line,kind});
+  if(state.terminal.length > 200) state.terminal.shift();
+}
+
+function updatePicMode(reason=''){
+  state.picLed = {green:0, blue:0, yellow:0, red:0};
+  if(state.q === 1){
+    state.picMode = 'LATCHED';
+    state.picLed.green = 1;
+  } else if(state.out555 === 1) {
+    state.picMode = 'WATCHING';
+    state.picLed.blue = 1;
+  } else {
+    state.picMode = 'IDLE';
+    state.picLed.yellow = 1;
+  }
+  if(reason) emit(`GSA,DEVICE=PIC_BLACKBOX,MODE=${state.picMode},REASON=${reason},Q=${state.q},NODE=${state.spstNode}`);
+}
+
+function applySwitch(closed, label){
+  const oldNode = state.spstNode;
+  state.spstClosed = closed;
+  state.spstNode = closed ? 0 : 1;     // physical pull-up: closed switch to ground
+  state.setN = state.spstNode;         // SET_N directly follows node
+  state.resetN = 1;
+  recomputeLatch();
+
+  if(state.spstNode !== oldNode){
+    state.events++;
+    if(closed) state.closes++; else state.opens++;
+    emit(`GSA,SWITCH=SPST,CONTACT=${closed?'CLOSED':'OPEN},NODE=${state.spstNode},SET_N=${state.setN},EVENTS=${state.events}`);
+    emit(`GSA,LOGIC=LATCH,Q=${state.q},NOT_Q=${state.nQ},SOURCE=7400`);
+  }
+  updatePicMode(label);
+  pushHistory(label);
+  render();
+}
+
+function momentaryClose(){
+  applySwitch(true,'MOMENTARY_CLOSE');
+  applySwitch(false,'MOMENTARY_RELEASE');
+}
+
+function resetLatch(){
+  state.resetN = 0;
+  recomputeLatch();
+  emit(`GSA,LOGIC=LATCH,Q=${state.q},NOT_Q=${state.nQ},SOURCE=RESET_BUTTON`);
+  state.resetN = 1;
+  recomputeLatch();
+  updatePicMode('RESET_LATCH');
+  pushHistory('RESET');
+  render();
+}
+
+function tick555(){
+  state.out555 = state.out555 ? 0 : 1;
+  if(state.out555 === 1) state.ticks++;
+  emit(`GSA,TIMER=555,OUT=${state.out555},TICKS=${state.ticks},Q=${state.q},NODE=${state.spstNode}`);
+  updatePicMode('555_TICK');
+  pushHistory('555');
+  render();
+}
+
+function picResetPulse(){
+  emit('GSA,DEVICE=PIC_BLACKBOX,MODE=PIC_RESET_PULSE,RC3=LATCH_RESET');
+  resetLatch();
+}
+
+function maybeBouncePacket(){
+  if($('bounceMode').value === 'one'){
+    emit(`GSA,SWITCH=SPST,NOTE=SIMULATED_BOUNCE_FILTERED,NODE=${state.spstNode}`);
+  }
+}
+
+function setKV(el,pairs){
+  el.innerHTML = pairs.map(([k,v]) => `<div>${k}</div><div><b>${v}</b></div>`).join('');
+}
+
+function renderTimeline(){
+  const cells = state.history.map(h => {
+    let cls = 'cell ';
+    if(h.kind === '555') cls += h.out555 ? 'hi' : 'lo';
+    else if(h.kind === 'RESET') cls += 'event';
+    else cls += h.q ? 'q' : (h.node ? 'lo' : 'hi');
+    return `<div class="${cls}" title="${h.kind}: node=${h.node}, q=${h.q}, 555=${h.out555}"></div>`;
+  }).join('');
+  $('timeline').innerHTML = cells;
+}
+
+function drawSchematic(){
+  const hi = '#6ee787', lo = '#5f7fb5', warn='#f5c451', hot='#76e4f7';
+  const wire = (d,color,w=4,dash='') => `<path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round" ${dash?`stroke-dasharray="${dash}"`:''}/>`;
+  const led = (x,y,color,on,label) => `<g><circle cx="${x}" cy="${y}" r="10" fill="${on?color:'#283654'}" stroke="${color}" stroke-width="2"/>${on?`<circle cx="${x}" cy="${y}" r="17" fill="${color}" opacity=".16"/>`:''}<text x="${x+18}" y="${y+5}" fill="#dce9ff" font-size="13">${label}</text></g>`;
+  const node = (x,y,color,val,label)=>`<g><circle cx="${x}" cy="${y}" r="7" fill="${color}" stroke="#dce9ff" stroke-width="1.5"/><text x="${x-14}" y="${y-14}" fill="#dce9ff" font-size="12">${label}</text><text x="${x-5}" y="${y+25}" fill="${color}" font-size="16" font-weight="800">${val}</text></g>`;
+  const cNode = state.spstNode === 0 ? hi : lo;
+  const cSet = state.setN === 0 ? hi : lo;
+  const cReset = state.resetN === 0 ? warn : lo;
+  const cQ = state.q ? hi : lo;
+  const cNQ = state.nQ ? hi : lo;
+  const c555 = state.out555 ? hi : lo;
+  const blade = state.spstClosed
+    ? `<path d="M126 183 L176 183" stroke="${hi}" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="183" r="6" fill="${hi}"/><circle cx="182" cy="183" r="6" fill="${hi}"/>`
+    : `<path d="M126 183 L172 157" stroke="${lo}" stroke-width="6" stroke-linecap="round"/><circle cx="120" cy="183" r="6" fill="${lo}"/><circle cx="182" cy="183" r="6" fill="${lo}"/>`;
+
+  $('schematicBox').innerHTML = `
+  <svg viewBox="0 0 1100 460" aria-label="Static active schematic">
+    <defs>
+      <linearGradient id="panelgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1b2543"/><stop offset="100%" stop-color="#11192d"/></linearGradient>
+      <marker id="arr" markerWidth="10" markerHeight="10" refX="8"
