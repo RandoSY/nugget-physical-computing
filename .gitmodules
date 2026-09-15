@@ -1,0 +1,6 @@
+[submodule "source-snapshots/nugget-fwlib"]
+	path = source-snapshots/nugget-fwlib
+	url = https://github.com/RandoSY/nugget-fwlib.git
+[submodule "source-snapshots/rg-show-tipper"]
+	path = source-snapshots/rg-show-tipper
+	url = https://github.com/RandoSY/rg_show_tipper.git
