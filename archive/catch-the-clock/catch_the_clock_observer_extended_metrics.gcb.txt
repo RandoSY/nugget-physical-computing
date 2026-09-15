@@ -1,0 +1,375 @@
+'==========================================================================
+' CATCH THE CLOCK - PIC16F18424 OBSERVER / REPORTER - EXTENDED VERSION
+' Great Cow BASIC firmware skeleton for REDBOARD / PIC16F18424
+'
+' New functionality added:
+'   1) 555 waveform measurement:
+'        - rising-edge tick count
+'        - high time
+'        - low time
+'        - period
+'        - frequency in milli-Hz
+'        - duty cycle in tenths of a percent
+'
+'   2) game / human-response metrics:
+'        - attempts
+'        - hits
+'        - misses
+'        - hit rate in tenths of a percent
+'        - response offset from last CLOCK rising edge
+'        - PB1 press duration
+'        - periodic summary lines
+'
+' Architectural rule:
+'   The 555 and 74LS00 create the real timing, logic, and latch memory.
+'   The PIC observes, measures, verifies, scores, and reports.
+'
+' Important:
+'   RC0 is the report channel only. Do not share RC0 with LEDs, buttons,
+'   buzzers, displays, or any other changing load.
+'
+' Timing note:
+'   This version uses a simple 10 ms software timebase. That is good for
+'   classroom timing, duty-cycle teaching, and first reaction-offset work.
+'   It is not intended as a precision lab chronometer yet.
+'==========================================================================
+
+#chip 16F18424, 32
+
+#config OSC = INTOSC
+#config WDT = OFF
+#config LVP = ON
+#config MCLRE = ON
+
+'--------------------------------------------------------------------------
+' UART setup
+'--------------------------------------------------------------------------
+#define HSerial_RX_pin PORTC.5
+#define HSerial_TX_pin PORTC.0
+HSerial_Baud_Rate = 9600
+
+'--------------------------------------------------------------------------
+' Pin map
+'--------------------------------------------------------------------------
+#define CLOCK_IN   PORTA.0   ' RA0: 555 CLOCK state, 1 = timing window open
+#define LATCH_Q    PORTA.1   ' RA1: 74LS00 latch Q output, 1 = stored success
+#define USER_SW    PORTA.2   ' RA2: raw PB1 / PLAY, 1 = pressed in this wiring
+#define RESET_IN   PORTA.3   ' RA3: optional reset sense input, active high or adapt as needed
+
+#define SERIAL_TX  PORTC.0   ' RC0: report channel only, UART TX
+#define LED_MODE   PORTC.1   ' RC1: watch / clock-window indicator
+#define LED_EVENT  PORTC.2   ' RC2: latched event / success indicator
+#define RESET_OUT  PORTC.3   ' RC3: optional external latch reset pulse, active low
+#define LED_MISS   PORTC.4   ' RC4: miss / diagnostic indicator
+
+'--------------------------------------------------------------------------
+' Digital I/O setup
+'--------------------------------------------------------------------------
+ANSELA = 0
+ANSELC = 0
+
+Dir CLOCK_IN  In
+Dir LATCH_Q   In
+Dir USER_SW   In
+Dir RESET_IN  In
+
+Dir SERIAL_TX Out
+Dir LED_MODE  Out
+Dir LED_EVENT Out
+Dir RESET_OUT Out
+Dir LED_MISS  Out
+
+Const MODE_IDLE     = 0
+Const MODE_WATCHING = 1
+Const MODE_LATCHED  = 2
+Const MODE_MISS     = 3
+
+Const DEBOUNCE_TICKS = 3
+Const SUMMARY_TICKS  = 100
+
+Dim mode As Byte
+Dim prevMode As Byte
+Dim prevClock As Bit
+Dim prevQ As Bit
+Dim rawPB1 As Bit
+Dim lastRawPB1 As Bit
+Dim stablePB1 As Bit
+Dim prevPB1 As Bit
+Dim debounceCount As Byte
+Dim playActive As Bit
+Dim sBar As Bit
+Dim qNow As Bit
+Dim clockNow As Bit
+Dim resetNow As Bit
+Dim prevReset As Bit
+Dim attempts As Word
+Dim hits As Word
+Dim misses As Word
+Dim resets As Word
+Dim ticks As Word
+Dim now10 As Word
+Dim summaryCounter As Word
+Dim lastRise10 As Word
+Dim lastFall10 As Word
+Dim thisRise10 As Word
+Dim thisFall10 As Word
+Dim highTicks As Word
+Dim lowTicks As Word
+Dim periodTicks As Word
+Dim periodMS As Word
+Dim highMS As Word
+Dim lowMS As Word
+Dim freqMilliHz As Word
+Dim dutyTenths As Word
+Dim dutyWhole As Word
+Dim dutyFrac As Word
+Dim freqWhole As Word
+Dim freqFrac As Word
+Dim pressStart10 As Word
+Dim pressDurationTicks As Word
+Dim pressDurationMS As Word
+Dim responseOffsetTicks As Word
+Dim responseOffsetMS As Word
+Dim hitRateTenths As Word
+Dim hitRateWhole As Word
+Dim hitRateFrac As Word
+Dim lastHitOffsetMS As Word
+Dim lastPressDurationMS As Word
+
+attempts = 0
+hits = 0
+misses = 0
+resets = 0
+ticks = 0
+now10 = 0
+summaryCounter = 0
+mode = MODE_IDLE
+prevMode = MODE_IDLE
+prevClock = 0
+prevQ = 0
+rawPB1 = 0
+lastRawPB1 = 0
+stablePB1 = 0
+prevPB1 = 0
+debounceCount = 0
+lastRise10 = 0
+lastFall10 = 0
+thisRise10 = 0
+thisFall10 = 0
+highTicks = 0
+lowTicks = 0
+periodTicks = 0
+periodMS = 0
+highMS = 0
+lowMS = 0
+freqMilliHz = 0
+dutyTenths = 0
+pressStart10 = 0
+pressDurationTicks = 0
+pressDurationMS = 0
+responseOffsetTicks = 0
+responseOffsetMS = 0
+lastHitOffsetMS = 0
+lastPressDurationMS = 0
+hitRateTenths = 0
+
+Set RESET_OUT On
+Set LED_MODE Off
+Set LED_EVENT Off
+Set LED_MISS Off
+Wait 250 ms
+
+HSerOut "GSA,SYS=INIT,MODE=IDLE,FW=CATCH_CLOCK_EXTENDED", 13, 10
+HSerOut "GSA,PINMAP=CLOCK_RA0,Q_RA1,PB1_RA2,RESET_RA3,TX_RC0", 13, 10
+HSerOut "GSA,FEATURES=CLOCK_METRICS,GAME_SCORING,RESPONSE_OFFSET,PRESS_DURATION", 13, 10
+
+Do
+    now10 = now10 + 1
+    summaryCounter = summaryCounter + 1
+
+    clockNow = CLOCK_IN
+    qNow = LATCH_Q
+    rawPB1 = USER_SW
+    resetNow = RESET_IN
+
+    If rawPB1 <> lastRawPB1 Then
+        debounceCount = 0
+        lastRawPB1 = rawPB1
+    Else
+        If debounceCount < DEBOUNCE_TICKS Then
+            debounceCount = debounceCount + 1
+        End If
+    End If
+
+    If debounceCount >= DEBOUNCE_TICKS Then
+        stablePB1 = rawPB1
+    End If
+
+    If stablePB1 = 1 And clockNow = 1 Then
+        playActive = 1
+        sBar = 0
+    Else
+        playActive = 0
+        sBar = 1
+    End If
+
+    If clockNow = 1 And prevClock = 0 Then
+        ticks = ticks + 1
+        thisRise10 = now10
+        If lastRise10 > 0 Then
+            periodTicks = thisRise10 - lastRise10
+            periodMS = periodTicks * 10
+            If periodTicks > 0 Then
+                freqMilliHz = 100000 / periodTicks
+                freqWhole = freqMilliHz / 1000
+                freqFrac = freqMilliHz Mod 1000
+            End If
+        End If
+        If lastFall10 > 0 Then
+            lowTicks = thisRise10 - lastFall10
+            lowMS = lowTicks * 10
+        End If
+        lastRise10 = thisRise10
+        HSerOut "GSA,TIMER=555,EDGE=RISE,CLOCK=1,TICKS=", Dec ticks, _
+                ",PERIOD_MS=", Dec periodMS, _
+                ",FREQ_HZ=", Dec freqWhole, ".", Dec freqFrac, _
+                ",LOW_MS=", Dec lowMS, _
+                ",PLAY_ACTIVE=", Dec playActive, _
+                ",Q=", Dec qNow, 13, 10
+    End If
+
+    If clockNow = 0 And prevClock = 1 Then
+        thisFall10 = now10
+        If lastRise10 > 0 Then
+            highTicks = thisFall10 - lastRise10
+            highMS = highTicks * 10
+        End If
+        lastFall10 = thisFall10
+        If periodTicks > 0 Then
+            dutyTenths = ( highTicks * 1000 ) / periodTicks
+            dutyWhole = dutyTenths / 10
+            dutyFrac = dutyTenths Mod 10
+        End If
+        HSerOut "GSA,TIMER=555,EDGE=FALL,CLOCK=0,HIGH_MS=", Dec highMS, _
+                ",DUTY_PCT=", Dec dutyWhole, ".", Dec dutyFrac, _
+                ",PERIOD_MS=", Dec periodMS, _
+                ",Q=", Dec qNow, 13, 10
+    End If
+
+    If stablePB1 = 1 And prevPB1 = 0 Then
+        attempts = attempts + 1
+        pressStart10 = now10
+        If clockNow = 1 Then
+            responseOffsetTicks = now10 - lastRise10
+            responseOffsetMS = responseOffsetTicks * 10
+            lastHitOffsetMS = responseOffsetMS
+            HSerOut "GSA,PB1=PRESSED,CLOCK=1,PLAY_ACTIVE=1,S_BAR=0,RESULT=SET_ATTEMPT,EVENTS=", Dec attempts, _
+                    ",OFFSET_MS=", Dec responseOffsetMS, 13, 10
+        Else
+            misses = misses + 1
+            mode = MODE_MISS
+            Set LED_MISS On
+            HSerOut "GSA,PB1=PRESSED,CLOCK=0,PLAY_ACTIVE=0,RESULT=MISS_WINDOW,EVENTS=", Dec attempts, _
+                    ",MISSES=", Dec misses, 13, 10
+        End If
+    End If
+
+    If stablePB1 = 0 And prevPB1 = 1 Then
+        pressDurationTicks = now10 - pressStart10
+        pressDurationMS = pressDurationTicks * 10
+        lastPressDurationMS = pressDurationMS
+        HSerOut "GSA,PB1=RELEASED,CLOCK=", Dec clockNow, _
+                ",PLAY_ACTIVE=0,Q=", Dec qNow, _
+                ",DURATION_MS=", Dec pressDurationMS, 13, 10
+        If qNow = 0 Then Set LED_EVENT Off
+    End If
+
+    If resetNow = 1 And prevReset = 0 Then
+        HSerOut "GSA,RESET_INPUT=PRESSED,RA3=1", 13, 10
+    End If
+
+    If qNow = 1 And prevQ = 0 Then
+        hits = hits + 1
+        mode = MODE_LATCHED
+        Set LED_EVENT On
+        Set LED_MISS Off
+        HSerOut "GSA,LOGIC=LATCH,Q=1,Q_BAR=0,SOURCE=74LS00,HITS=", Dec hits, _
+                ",LAST_OFFSET_MS=", Dec lastHitOffsetMS, 13, 10
+    End If
+
+    If qNow = 0 And prevQ = 1 Then
+        resets = resets + 1
+        mode = MODE_IDLE
+        Set LED_EVENT Off
+        HSerOut "GSA,RESET=PRESSED,R_BAR=0,Q=0,Q_BAR=1,RESETS=", Dec resets, 13, 10
+    End If
+
+    If mode <> MODE_MISS Then
+        If qNow = 1 Then
+            mode = MODE_LATCHED
+        ElseIf qNow = 0 And clockNow = 1 Then
+            mode = MODE_WATCHING
+        Else
+            mode = MODE_IDLE
+        End If
+    End If
+
+    Select Case mode
+        Case MODE_IDLE
+            Set LED_MODE Off
+        Case MODE_WATCHING
+            Set LED_MODE On
+        Case MODE_LATCHED
+            Set LED_MODE On
+        Case MODE_MISS
+            Set LED_MODE Off
+    End Select
+
+    If mode <> prevMode Then
+        Select Case mode
+            Case MODE_IDLE
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=IDLE,CLOCK=", Dec clockNow, ",Q=", Dec qNow, 13, 10
+            Case MODE_WATCHING
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=WATCHING,CLOCK=1,Q=0", 13, 10
+            Case MODE_LATCHED
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=LATCHED,Q=1", 13, 10
+            Case MODE_MISS
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=MISS,CLOCK=0,Q=", Dec qNow, 13, 10
+        End Select
+        prevMode = mode
+    End If
+
+    If mode = MODE_MISS Then mode = MODE_IDLE
+
+    If summaryCounter >= SUMMARY_TICKS Then
+        summaryCounter = 0
+        If attempts > 0 Then
+            hitRateTenths = ( hits * 1000 ) / attempts
+            hitRateWhole = hitRateTenths / 10
+            hitRateFrac = hitRateTenths Mod 10
+        Else
+            hitRateTenths = 0
+            hitRateWhole = 0
+            hitRateFrac = 0
+        End If
+
+        HSerOut "GSA,SUMMARY,FREQ_HZ=", Dec freqWhole, ".", Dec freqFrac, _
+                ",DUTY_PCT=", Dec dutyWhole, ".", Dec dutyFrac, _
+                ",PERIOD_MS=", Dec periodMS, _
+                ",HIGH_MS=", Dec highMS, _
+                ",LOW_MS=", Dec lowMS, _
+                ",ATTEMPTS=", Dec attempts, _
+                ",HITS=", Dec hits, _
+                ",MISSES=", Dec misses, _
+                ",HIT_RATE=", Dec hitRateWhole, ".", Dec hitRateFrac, _
+                ",LAST_OFFSET_MS=", Dec lastHitOffsetMS, _
+                ",LAST_PRESS_MS=", Dec lastPressDurationMS, _
+                ",Q=", Dec qNow, 13, 10
+    End If
+
+    prevClock = clockNow
+    prevQ = qNow
+    prevPB1 = stablePB1
+    prevReset = resetNow
+    WaitMS 10
+Loop
