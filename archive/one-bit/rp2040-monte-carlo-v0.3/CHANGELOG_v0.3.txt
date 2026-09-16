@@ -1,0 +1,23 @@
+UMA RP2040-Zero One-Bit Engine v0.3 Changelog
+
+Critical fix:
+- Removed blocking 20 ms LED sample flash during RUN. The v0.2 implementation distorted
+  the intended 700-9700 us random dwell by adding a much larger delay after every sample.
+
+Serial robustness:
+- Replaced sys.stdin.readline() with a nonblocking character buffer dispatched on CR/LF.
+
+PIO resource hygiene:
+- Direct sampler and latch sampler are now selected exclusively. Only the active mode's
+  state machine remains active.
+
+PWM behavior:
+- PWM is stopped and GP0 is tri-stated when switching to external-source modes.
+
+Safety / dashboard:
+- SET TRIALS is clamped to MAX_TRIALS = 100000.
+- STATUS reports pwm_active, sample_led_hold_ms, and max_trials.
+
+Methodology:
+- Notes that the requested random dwell is the sleep before sampling, while Python
+  overhead and reporting remain outside that dwell.
