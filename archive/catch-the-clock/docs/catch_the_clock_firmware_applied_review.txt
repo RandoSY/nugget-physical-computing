@@ -1,0 +1,177 @@
+Catch the Clock
+Firmware + Tutorial Applied Review
+
+This review analyzes the uploaded GCBASIC observer firmware against the current dark dashboard tutorial, then applies the corrections into a revised firmware file and a firmware-review appendix. The goal is to keep the 555 and 74LS00 as meaningful hardware while making the PIC a reliable observer/reporter.
+Applied deliverables: catch_the_clock_observer_reviewed.gcb.txt and this review PDF.
+
+Clock: 555 output
+Input: PB1/RESET
+Logic: S_bar / R_bar
+Latch Memory: Q / Q_bar
+Report: PIC RC0 GSA
+
+1. Tutorial Review
+The tutorial is conceptually strong. It teaches the system as a sequence rather than a pile of parts: 555 timing, PB1 human action, NAND decision logic, SR latch memory, and PIC report channel. Page 2 states the central learning message clearly: the circuit becomes science when the controller observes state changes, counts events, and reports a consistent stream.
+Page 7 is especially important because it isolates the active-low NAND SR latch and shows the hold, set, reset, and avoid cases. Page 10 correctly keeps the PIC modest: it watches physical logic, counts events, drives indicators, and emits parseable reports.
+
+Area | What works well | Why it matters
+Conceptual spine | Clock -> input -> logic -> latch -> report | Gives students a durable mental model.
+Latch page | Clear active-low NAND truth table | Makes S_bar/R_bar meaningful instead of mysterious.
+PIC page | Observer/reporter framing | Prevents the microcontroller from replacing the logic lesson.
+GSA protocol | Short parseable lines | Bridges real hardware to dashboard and Python analysis.
+
+2. Firmware Review - Key Findings
+The uploaded GCBASIC file already gets the architectural stance right: it states that the PIC watches the 555/74LS00 hardware latch and does not replace it; it maps CLOCK to RA0, Q to RA1, PB1 to RA2, and RC0 as UART TX; and it explicitly preserves RC0 as the report channel only.
+
+Finding | Comment | Applied change
+Missing LVP config | For this REDBOARD/PIC workflow, LVP and MCLRE should be explicit near the top. | Added #config LVP = ON and #config MCLRE = ON.
+No fixed chip clock | The uploaded file uses #chip 16F18424 without an explicit frequency. | Changed to #chip 16F18424, 32 for serial timing clarity.
+Analog defaults risk | PIC pins may default to analog depending on device setup. | Added ANSELA = 0 and ANSELC = 0 digital setup.
+PLAY_ACTIVE on clock tick | Uploaded tick report always prints PLAY_ACTIVE=0. | Now reports actual interpreted playActive.
+Attempts vs hits | Uploaded valid PB1 line used hits + 1 before Q was authoritative. | Added attempts counter and keeps hits tied to Q rising edge.
+Debounce too implicit | A 10 ms loop is not the same as debounced edge detection. | Added simple 30 ms stable-input debounce for PB1.
+Mode reporting | Mode changes were implied but not consistently emitted. | Added mode-change GSA lines for IDLE/WATCHING/LATCHED/MISS.
+
+3. Applied Signal Contract
+The revised firmware treats the external 74LS00 latch as authoritative. PB1 attempts are counted when a stable press edge appears, but hits are counted only when the observed latch output Q rises. This preserves the lesson: the PIC reports the hardware; it does not pretend to be the latch.
+
+Signal | PIC pin | Meaning | Report field
+CLOCK | RA0 | 555 timing window; 1 means opportunity open | CLOCK, TIMER=555, TICKS
+LATCH_Q | RA1 | External 74LS00 latch output; authoritative success bit | Q, LOGIC=LATCH
+PB1 / PLAY | RA2 | Debounced player input; 1 means pressed in this wiring | PB1=PRESSED/RELEASED
+UART TX | RC0 | Clean report channel only | GSA lines
+LED_MODE | RC1 | Optional mode/watch indicator | not required for parser
+LED_EVENT | RC2 | Optional event/latched/miss indicator | not required for parser
+RESET_OUT | RC3 | Optional external reset pulse, idle high | RESET_OUT / RC3
+
+The tutorial page 11 protocol remains the guide. The revised firmware emits the same conceptual fields: TIMER=555, PB1=PRESSED, PLAY_ACTIVE, S_BAR, RESULT, LOGIC=LATCH, Q, Q_BAR, RESET, MODE.
+
+Event | Revised GSA example
+Boot | GSA,SYS=INIT,MODE=IDLE,FW=CATCH_CLOCK_OBSERVER_REVIEWED
+Clock rising | GSA,TIMER=555,CLOCK=1,TICKS=3,PLAY_ACTIVE=0,Q=0
+Valid PB1 attempt | GSA,PB1=PRESSED,CLOCK=1,PLAY_ACTIVE=1,S_BAR=0,RESULT=SET_ATTEMPT,EVENTS=4
+Miss | GSA,PB1=PRESSED,CLOCK=0,PLAY_ACTIVE=0,RESULT=MISS_WINDOW,EVENTS=5,MISSES=2
+Latch hit | GSA,LOGIC=LATCH,Q=1,Q_BAR=0,SOURCE=74LS00,HITS=3
+Reset observed | GSA,RESET=PRESSED,R_BAR=0,Q=0,Q_BAR=1,RESETS=1
+
+4. Revised Firmware Structure
+The revised file is intentionally still simple. It does not become a reaction-time engine yet. It is a robust observer/reporter for the one-bit hardware.
+
+Section | Purpose
+Config and pin map | Make LVP/MCLRE explicit and preserve RC0 UART TX.
+Digital setup | Ensure RA/RC pins are treated as digital I/O.
+PB1 debounce | Convert raw button transitions into stable press/release edges.
+CLOCK edge detection | Count 555 rising edges and report CLOCK/ticks.
+PB1 attempt detection | Classify stable PB1 press as valid attempt or miss.
+Q edge detection | Treat Q rising as authoritative hit and Q falling as reset.
+Mode classification | Emit human-readable IDLE/WATCHING/LATCHED/MISS mode lines.
+
+Configuration and pin contract excerpt:
+#chip 16F18424, 32
+#config OSC = INTOSC
+#config WDT = OFF
+#config LVP = ON
+#config MCLRE = ON
+
+#define HSerial_RX_pin PORTC.5
+#define HSerial_TX_pin PORTC.0
+HSerial_Baud_Rate = 9600
+
+#define CLOCK_IN PORTA.0
+#define LATCH_Q PORTA.1
+#define USER_SW PORTA.2
+#define SERIAL_TX PORTC.0
+#define LED_MODE PORTC.1
+#define LED_EVENT PORTC.2
+#define RESET_OUT PORTC.3
+
+ANSELA = 0
+ANSELC = 0
+
+Dir CLOCK_IN In
+Dir LATCH_Q In
+Dir USER_SW In
+Dir SERIAL_TX Out
+Dir LED_MODE Out
+Dir LED_EVENT Out
+Dir RESET_OUT Out
+
+5. Important Applied Code Excerpts
+PB1 debounce excerpt:
+If rawPB1 <> lastRawPB1 Then
+  debounceCount = 0
+  lastRawPB1 = rawPB1
+Else
+  If debounceCount < DEBOUNCE_TICKS Then
+    debounceCount = debounceCount + 1
+  End If
+End If
+If debounceCount >= DEBOUNCE_TICKS Then
+  stablePB1 = rawPB1
+End If
+
+Interpreted play signal and clock report excerpt:
+If stablePB1 = 1 And clockNow = 1 Then
+  playActive = 1
+  sBar = 0
+Else
+  playActive = 0
+  sBar = 1
+End If
+
+If clockNow = 1 And prevClock = 0 Then
+  ticks = ticks + 1
+  HSerOut "GSA,TIMER=555,CLOCK=1,TICKS=", Dec ticks, ",PLAY_ACTIVE=", Dec playActive, ",Q=", Dec qNow, 13, 10
+End If
+
+6. Edge Detection and Authoritative Hit Logic
+The key correction is separating a player attempt from a confirmed hit. A PB1 press during CLOCK high is a set attempt; the external 74LS00 latch becomes authoritative when Q actually rises.
+
+PB1 attempt excerpt:
+If stablePB1 = 1 And prevPB1 = 0 Then
+  attempts = attempts + 1
+  If clockNow = 1 Then
+    HSerOut "GSA,PB1=PRESSED,CLOCK=1,PLAY_ACTIVE=1,S_BAR=0,RESULT=SET_ATTEMPT,EVENTS=", Dec attempts, 13, 10
+  Else
+    misses = misses + 1
+    mode = MODE_MISS
+    Set LED_EVENT On
+    HSerOut "GSA,PB1=PRESSED,CLOCK=0,PLAY_ACTIVE=0,RESULT=MISS_WINDOW,EVENTS=", Dec attempts, ",MISSES=", Dec misses, 13, 10
+  End If
+End If
+
+If stablePB1 = 0 And prevPB1 = 1 Then
+  HSerOut "GSA,PB1=RELEASED,CLOCK=", Dec clockNow, ",PLAY_ACTIVE=0,Q=", Dec qNow, 13, 10
+  If qNow = 0 Then
+    Set LED_EVENT Off
+  End If
+End If
+
+Latch Q edge excerpt:
+If qNow = 1 And prevQ = 0 Then
+  hits = hits + 1
+  mode = MODE_LATCHED
+  Set LED_EVENT On
+  HSerOut "GSA,LOGIC=LATCH,Q=1,Q_BAR=0,SOURCE=74LS00,HITS=", Dec hits, 13, 10
+End If
+If qNow = 0 And prevQ = 1 Then
+  resets = resets + 1
+  mode = MODE_IDLE
+  Set LED_EVENT Off
+  HSerOut "GSA,RESET=PRESSED,R_BAR=0,Q=0,Q_BAR=1,RESETS=", Dec resets, 13, 10
+End If
+
+7. Remaining Review Notes
+These are practical items to confirm on the bench before calling the firmware final:
+
+PB1 polarity: The reviewed code assumes USER_SW = 1 when PB1 is pressed. If the physical PB1 node is active-low at the PIC input, invert the USER_SW interpretation.
+Latch polarity: The code assumes LATCH_Q = 1 means success latched. Confirm the exact 74LS00 output wired to RA1.
+Analog disable: If the GCBASIC device file rejects ANSELA/ANSELC assignment, comment those lines and use the device-file equivalent.
+UART syntax: The revised code preserves the uploaded HSerOut style. If the local GCBASIC build prefers HSerPrint/HSerPrintCRLF, convert only the print calls.
+Debounce constant: DEBOUNCE_TICKS = 3 at 10 ms polling gives about 30 ms. Adjust after observing PB1 behavior.
+RC0 discipline: Do not attach LEDs, buzzers, or multiplexed display lines to RC0. Keep it pure TX.
+
+Conclusion:
+The tutorial and firmware are aligned around the same principle: the 555 remains the clock idea, the 74LS00 remains the logic and memory idea, and the PIC plus dashboard make those ideas repeatable, measurable, and reviewable.
+
+Provenance note: repository-native searchable text edition recovered from `catch_the_clock_firmware_applied_review.pdf`; the formatted PDF remains preserved in the Library. This text edition prioritizes recoverable content over page layout/figures.
