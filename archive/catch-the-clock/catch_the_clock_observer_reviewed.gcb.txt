@@ -1,0 +1,252 @@
+'==========================================================================
+' CATCH THE CLOCK - PIC16F18424 OBSERVER / REPORTER - REVIEWED VERSION
+' GCBASIC firmware skeleton for REDBOARD / PIC16F18424
+'
+' Role: Watch the 555/74LS00 hardware latch. Do NOT replace it.
+'   - Read CLOCK from the 555 output
+'   - Read Q from the external 74LS00 NAND SR latch
+'   - Read PB1 / PLAY as a raw player input
+'   - Count attempts, hits, misses, resets, and 555 ticks
+'   - Emit compact GSA report lines on RC0 only
+'
+' Architectural rule preserved:
+'   RC0 is the report channel only. Do not share RC0 with LEDs,
+'   buzzers, switches, displays, or any other changing load.
+'==========================================================================
+
+#chip 16F18424, 32
+#config OSC = INTOSC
+#config WDT = OFF
+#config LVP = ON
+#config MCLRE = ON
+
+' ---- UART setup ----
+#define HSerial_RX_pin PORTC.5
+#define HSerial_TX_pin PORTC.0
+HSerial_Baud_Rate = 9600
+
+' ---- Pin map ----
+#define CLOCK_IN   PORTA.0   ' RA0: 555 CLOCK state, 1 = timing window open
+#define LATCH_Q    PORTA.1   ' RA1: 74LS00 latch Q output, 1 = stored success
+#define USER_SW    PORTA.2   ' RA2: raw PB1 / PLAY, 1 = pressed in this wiring
+
+#define SERIAL_TX  PORTC.0   ' RC0: report channel only, UART TX
+#define LED_MODE   PORTC.1   ' RC1: optional mode/watch indicator
+#define LED_EVENT  PORTC.2   ' RC2: optional event/latched/miss indicator
+#define RESET_OUT  PORTC.3   ' RC3: optional external latch reset pulse, active low
+
+' ---- Digital I/O setup ----
+' Keep these if your GCBASIC device file exposes ANSEL registers.
+' They prevent analog defaults from hiding digital input changes.
+ANSELA = 0
+ANSELC = 0
+
+Dir CLOCK_IN  In
+Dir LATCH_Q   In
+Dir USER_SW   In
+Dir SERIAL_TX Out
+Dir LED_MODE  Out
+Dir LED_EVENT Out
+Dir RESET_OUT Out
+
+' ---- State constants ----
+Const MODE_IDLE     = 0
+Const MODE_WATCHING = 1
+Const MODE_LATCHED  = 2
+Const MODE_MISS     = 3
+
+Const DEBOUNCE_TICKS = 3       ' 3 x 10 ms = about 30 ms simple debounce
+
+' ---- State variables ----
+Dim mode As Byte
+Dim prevMode As Byte
+
+Dim prevClock As Bit
+Dim prevQ As Bit
+Dim rawPB1 As Bit
+Dim lastRawPB1 As Bit
+Dim stablePB1 As Bit
+Dim prevPB1 As Bit
+Dim debounceCount As Byte
+
+Dim playActive As Bit
+Dim sBar As Bit
+Dim qNow As Bit
+Dim clockNow As Bit
+
+Dim attempts As Word
+Dim hits As Word
+Dim misses As Word
+Dim resets As Word
+Dim ticks As Word
+
+' ---- Init ----
+attempts = 0
+hits = 0
+misses = 0
+resets = 0
+ticks = 0
+
+mode = MODE_IDLE
+prevMode = MODE_IDLE
+prevClock = 0
+prevQ = 0
+rawPB1 = 0
+lastRawPB1 = 0
+stablePB1 = 0
+prevPB1 = 0
+debounceCount = 0
+
+Set RESET_OUT On    ' idle high; pulse low only when explicitly resetting latch
+Set LED_MODE Off
+Set LED_EVENT Off
+
+Wait 250 ms
+HSerOut "GSA,SYS=INIT,MODE=IDLE,FW=CATCH_CLOCK_OBSERVER_REVIEWED", 13, 10
+HSerOut "GSA,PINMAP=CLOCK_RA0,Q_RA1,PB1_RA2,TX_RC0", 13, 10
+
+' ---- Main loop ----
+Do
+
+    ' ----------------------------------------------------------
+    ' 1. Read raw hardware inputs
+    ' ----------------------------------------------------------
+    clockNow = CLOCK_IN
+    qNow = LATCH_Q
+    rawPB1 = USER_SW
+
+    ' ----------------------------------------------------------
+    ' 2. Debounce PB1 before edge detection
+    ' ----------------------------------------------------------
+    If rawPB1 <> lastRawPB1 Then
+        debounceCount = 0
+        lastRawPB1 = rawPB1
+    Else
+        If debounceCount < DEBOUNCE_TICKS Then
+            debounceCount = debounceCount + 1
+        End If
+    End If
+
+    If debounceCount >= DEBOUNCE_TICKS Then
+        stablePB1 = rawPB1
+    End If
+
+    ' ----------------------------------------------------------
+    ' 3. Compute interpreted play signal for reporting
+    '    In this firmware, the physical 74LS00 logic remains authoritative.
+    '    The PIC reports the same decision rule for the dashboard.
+    ' ----------------------------------------------------------
+    If stablePB1 = 1 And clockNow = 1 Then
+        playActive = 1
+        sBar = 0
+    Else
+        playActive = 0
+        sBar = 1
+    End If
+
+    ' ----------------------------------------------------------
+    ' 4. Detect 555 rising edge
+    ' ----------------------------------------------------------
+    If clockNow = 1 And prevClock = 0 Then
+        ticks = ticks + 1
+        HSerOut "GSA,TIMER=555,CLOCK=1,TICKS=", Dec ticks, ",PLAY_ACTIVE=", Dec playActive, ",Q=", Dec qNow, 13, 10
+    End If
+
+    ' ----------------------------------------------------------
+    ' 5. Detect PB1 press edge after debounce
+    ' ----------------------------------------------------------
+    If stablePB1 = 1 And prevPB1 = 0 Then
+        attempts = attempts + 1
+
+        If clockNow = 1 Then
+            ' Valid timing window. The external latch should set Q.
+            HSerOut "GSA,PB1=PRESSED,CLOCK=1,PLAY_ACTIVE=1,S_BAR=0,RESULT=SET_ATTEMPT,EVENTS=", Dec attempts, 13, 10
+        Else
+            ' Outside timing window. Do not count as hit.
+            misses = misses + 1
+            mode = MODE_MISS
+            Set LED_EVENT On
+            HSerOut "GSA,PB1=PRESSED,CLOCK=0,PLAY_ACTIVE=0,RESULT=MISS_WINDOW,EVENTS=", Dec attempts, ",MISSES=", Dec misses, 13, 10
+        End If
+    End If
+
+    If stablePB1 = 0 And prevPB1 = 1 Then
+        HSerOut "GSA,PB1=RELEASED,CLOCK=", Dec clockNow, ",PLAY_ACTIVE=0,Q=", Dec qNow, 13, 10
+        If qNow = 0 Then
+            Set LED_EVENT Off
+        End If
+    End If
+
+    ' ----------------------------------------------------------
+    ' 6. Detect authoritative external latch changes
+    ' ----------------------------------------------------------
+    If qNow = 1 And prevQ = 0 Then
+        hits = hits + 1
+        mode = MODE_LATCHED
+        Set LED_EVENT On
+        HSerOut "GSA,LOGIC=LATCH,Q=1,Q_BAR=0,SOURCE=74LS00,HITS=", Dec hits, 13, 10
+    End If
+
+    If qNow = 0 And prevQ = 1 Then
+        resets = resets + 1
+        mode = MODE_IDLE
+        Set LED_EVENT Off
+        HSerOut "GSA,RESET=PRESSED,R_BAR=0,Q=0,Q_BAR=1,RESETS=", Dec resets, 13, 10
+    End If
+
+    ' ----------------------------------------------------------
+    ' 7. Classify mode from observed hardware state
+    ' ----------------------------------------------------------
+    If mode <> MODE_MISS Then
+        If qNow = 1 Then
+            mode = MODE_LATCHED
+        ElseIf qNow = 0 And clockNow = 1 Then
+            mode = MODE_WATCHING
+        Else
+            mode = MODE_IDLE
+        End If
+    End If
+
+    ' ----------------------------------------------------------
+    ' 8. Status LEDs and mode-change reporting
+    ' ----------------------------------------------------------
+    Select Case mode
+        Case MODE_IDLE
+            Set LED_MODE Off
+        Case MODE_WATCHING
+            Set LED_MODE On
+        Case MODE_LATCHED
+            Set LED_MODE On
+        Case MODE_MISS
+            Set LED_MODE Off
+    End Select
+
+    If mode <> prevMode Then
+        Select Case mode
+            Case MODE_IDLE
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=IDLE,CLOCK=", Dec clockNow, ",Q=", Dec qNow, 13, 10
+            Case MODE_WATCHING
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=WATCHING,CLOCK=1,Q=0", 13, 10
+            Case MODE_LATCHED
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=LATCHED,Q=1", 13, 10
+            Case MODE_MISS
+                HSerOut "GSA,DEVICE=PIC_BLACKBOX,MODE=MISS,CLOCK=0,Q=", Dec qNow, 13, 10
+        End Select
+        prevMode = mode
+    End If
+
+    ' MISS is a transient interpretation; after reporting, return to state-based mode.
+    If mode = MODE_MISS Then
+        mode = MODE_IDLE
+    End If
+
+    ' ----------------------------------------------------------
+    ' 9. Save previous states
+    ' ----------------------------------------------------------
+    prevClock = clockNow
+    prevQ = qNow
+    prevPB1 = stablePB1
+
+    WaitMS 10
+
+Loop
