@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="520" height="150" viewBox="0 0 520 150" role="img" aria-label="MSP430 Learning Labs logo">
+<rect width="520" height="150" rx="22" fill="#10233F"/>
+<rect x="22" y="27" width="95" height="95" rx="16" fill="#1B426E" stroke="#65D4BC" stroke-width="3"/>
+<rect x="45" y="50" width="48" height="48" rx="8" fill="#F0FAFF"/>
+<path d="M55 62h28M55 73h28M55 84h18" stroke="#247F9E" stroke-width="4"/>
+<g stroke="#65D4BC" stroke-width="4"><path d="M36 56h-11M36 76h-11M36 96h-11M105 56h10M105 76h10M105 96h10"/></g>
+<text x="142" y="68" font-family="Arial,sans-serif" font-weight="800" font-size="37" fill="#F3FAFF">MSP430</text>
+<text x="144" y="105" font-family="Arial,sans-serif" font-size="26" font-weight="600" fill="#65D4BC">LEARNING LABS</text>
+<text x="144" y="126" font-family="Arial,sans-serif" font-size="14" fill="#CCDCEE">FROM BITS TO BEHAVIOR</text>
+</svg>

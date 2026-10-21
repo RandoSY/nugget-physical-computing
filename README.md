@@ -50,3 +50,8 @@ Nugget connects naturally to:
 **Lifecycle:** `active`
 
 This repository currently defines the canonical learning progression. Existing code and historical examples still need to be curated into this structure, with each migrated example labeled as verified, upstream, historical, or not yet reproduced.
+
+
+## MSP430G2553 — From Bits to Behavior (10-lesson course)
+
+The [MSP430G2553 Learning Labs](msp430g2553-learning-labs/README.md) curriculum modernizes register-level LaunchPad examples into a progressive learning sequence: direct registers → generic bit macros → readable hardware commands → small C functions. It includes ten labs, four inquiry-measurement appendices (TMP36, HX711, HC-SR04, VL6180X), a teacher's guide, and wiring guidance for both G2 and G2ET LaunchPads. [Download the corrected complete ZIP](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_10_Lessons_4_Appendices.zip). **17/17 host syntax tests passed; physical and CCS compiler tests still needed.**

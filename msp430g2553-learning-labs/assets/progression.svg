@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="180" viewBox="0 0 960 180" role="img" aria-label="Macro learning progression">
+<rect width="960" height="180" rx="24" fill="#EAF4F7"/>
+<g font-family="Arial,sans-serif">
+<rect x="25" y="36" width="264" height="100" rx="16" fill="#193A5E"/>
+<text x="157" y="66" text-anchor="middle" font-size="17" font-weight="bold" fill="#78D8C0">BEGINNER INTENT</text>
+<text x="157" y="103" text-anchor="middle" font-size="21" fill="white">LED_ON(LED_A);</text>
+<path d="M298 84h40l-11 -10m11 10-11 10" fill="none" stroke="#147E8D" stroke-width="5"/>
+<rect x="347" y="36" width="264" height="100" rx="16" fill="#225B79"/>
+<text x="479" y="66" text-anchor="middle" font-size="17" font-weight="bold" fill="#BFF8E8">GENERAL MACRO</text>
+<text x="479" y="103" text-anchor="middle" font-size="19" fill="white">SET_BITS(P1OUT, BIT0)</text>
+<path d="M620 84h40l-11 -10m11 10-11 10" fill="none" stroke="#147E8D" stroke-width="5"/>
+<rect x="669" y="36" width="266" height="100" rx="16" fill="#0A8191"/>
+<text x="802" y="66" text-anchor="middle" font-size="17" font-weight="bold" fill="#C6FFF2">REAL HARDWARE C</text>
+<text x="802" y="103" text-anchor="middle" font-size="21" fill="white">P1OUT |= BIT0;</text>
+</g></svg>
