@@ -2,7 +2,7 @@
 
 # MSP430G2553 Learning Labs — From Bits to Behavior
 
-**Ten carefully staged bare-metal C lessons, four inquiry STEM measurement appendices, and an extensively documented teacher's guide.** Runs on the MSP430G2553 MCU in the old **MSP-EXP430G2** and newer **MSP-EXP430G2ET** LaunchPads, subject to differing legacy USB debugger support and jumper settings.
+**Eleven carefully staged bare-metal C lessons (including a cooperative multitasking extension), four inquiry STEM measurement appendices, and an extensively documented teacher's guide.** Runs on the MSP430G2553 MCU in the old **MSP-EXP430G2** and newer **MSP-EXP430G2ET** LaunchPads, subject to differing legacy USB debugger support and jumper settings.
 
 <img src="assets/progression.svg" width="960" alt="Each beginner-friendly command expands to familiar C register operations" />
 
@@ -36,6 +36,7 @@ The macros are not a proprietary runtime and do not hide the bare metal. They ar
 | [08 UART TX](lessons/08-uart-transmit) | Serial output at 9600 baud | USB virtual COM |
 | [09 UART RX](lessons/09-uart-commands) | Receive commands | USB virtual COM |
 | [10 Telemetry](lessons/10-telemetry) | CSV-based instrument | ADC + button + UART |
+| [11 Tiny Multitasker](lessons/11-tiny-multitasker) | Blocking -> timed jobs -> macro scheduler -> LPM0 | Onboard LEDs, button, UART; optional EnergyTrace |
 
 **Inquiry STEM appendices:** [A TMP36 temperature](appendices/A-temperature), [B HX711 scale](appendices/B-hx711-scale), [C HC-SR04 ultrasonic](appendices/C-ultrasonic), and [D VL6180X optical ToF + software-I2C](appendices/D-vl6180x-software-i2c) (advanced experimental).
 
@@ -54,9 +55,9 @@ Use the built-in USB backchannel UART: **P1.1 RXD / P1.2 TXD, 9600 baud, 8N1**, 
 
 ## Teaching and verification status
 
-- All programs are provided as commented C sources for MSP430G2553 device headers. Host syntax validation sources are included in `tools/`; genuine CCS/board qualification is still pending. See [validation checklist](docs/VALIDATION_AND_HARDWARE_CHECKLIST.md).
-- There are automated host-side C syntax checks with a simulated MSP430 header; no actual target compiler or physical board was available during package creation.
-- This is **source-ready, not hardware-certified or prebuilt CCS-import project metadata**. Before teaching, create a project in your installed CCS 21, compile each lab, and bench-verify both boards and every external sensor.
+- All programs are provided as commented C sources for MSP430G2553 device headers. Lesson 11 adds four documented stages, CCS ProjectSpec import candidates, a diagram and scheduler logic tests. Host syntax validation sources are included in `tools/`; genuine CCS/board qualification is still pending. See [validation checklist](docs/VALIDATION_AND_HARDWARE_CHECKLIST.md).
+- There are 21/21 automated host-side C syntax checks with a simulated MSP430 header, plus passing Lesson 11 deterministic logic tests; no actual target compiler or physical board was available during package creation.
+- Core lessons 1–10 are **source-ready**; Lesson 11 includes four TI `.projectspec` project-import templates which require CCS verification. The full package is **not hardware-certified**. Before teaching, create a project in your installed CCS 21, compile each lab, and bench-verify both boards and every external sensor.
 - The core code is designed for a calibrated 1 MHz DCO and 512 bytes of RAM.
 
 ## Origin, attribution and license

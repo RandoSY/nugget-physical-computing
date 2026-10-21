@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectSpec>
+  <project name="MSP430_L11_03_RunEvery" device="MSP430G2553" launchWizard="False" description="MSP430G2553 Learning Labs Lesson 11 03-run-every-macro; standalone educational C source">
+    <file action="copy" path="main.c" targetDirectory="." />
+    <file action="copy" path="edu430.h" targetDirectory="." />
+    <file action="copy" path="tiny_scheduler.h" targetDirectory="." />
+    <file action="copy" path="button_filter.h" targetDirectory="." />
+  </project>
+</projectSpec>

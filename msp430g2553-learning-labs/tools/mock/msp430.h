@@ -5,6 +5,11 @@
 #define __enable_interrupt() do {} while(0)
 #define __disable_interrupt() do {} while(0)
 #define __delay_cycles(x) do {(void)(x);} while(0)
+#define __bis_SR_register(x) do {(void)(x);} while(0)
+#define __bic_SR_register_on_exit(x) do {(void)(x);} while(0)
+#define __no_operation() do {} while(0)
+#define LPM0_bits 0x10u
+#define GIE 0x08u
 #define BIT0 0x01u
 #define BIT1 0x02u
 #define BIT2 0x04u

@@ -13,3 +13,8 @@ Official CCS: https://www.ti.com/tool/CCSTUDIO (TI listed 21.0.1 in October 2026
 This package intentionally does **not** include legacy Eclipse `.cproject`/`.ccsproject` files: fixed old compiler tool versions can prevent import into CCS 21. It provides **CCS-ready source projects** (one small folder per program), not IDE-generated project files. Test project import on your installed CCS configuration before classroom deployment.
 
 Device header: `<msp430.h>` is supplied by the CCS MSP430 compiler/device support, NOT a file to download from this package. The 1 MHz examples depend on factory calibration constants; erased calibration must be repaired before running timed experiments.
+
+
+## Lesson 11 — ready-to-import ProjectSpec candidates
+
+Unlike the original source-only labs, the four Lesson 11 stage directories also contain a TI `*.projectspec` file for quick project creation in CCS. Import each ProjectSpec independently (or create an empty target project as above). **ProjectSpec XML was checked, but its import and MSP430 linking could not be tested on an installed CCS workstation here.** See [Lesson 11 CCS Projects](../lessons/11-tiny-multitasker/CCS_PROJECTS.md).

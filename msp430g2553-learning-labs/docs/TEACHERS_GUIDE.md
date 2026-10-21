@@ -256,3 +256,14 @@ Use [`evolution/four-mode-led-patterns`](../evolution/four-mode-led-patterns) as
 ## Status and safety for first classroom deployment
 
 The host mock-header syntax test is a smoke test, **not** MSP430 target compilation or hardware validation. Before teaching, build one project per laboratory in a local CCS installation and test each LaunchPad jumper position and accessory breakout. Record actual toolchain version, board revision, observed COM number, test conditions, and any source changes. The optical I2C experiment needs particularly careful device/module qualification.
+
+
+---
+
+## New Lesson 11: Cooperative Multitasking (optional two-session extension)
+
+The [Lesson 11 Teacher Notes](../lessons/11-tiny-multitasker/TEACHER_NOTES.md) contain the complete teaching sequence, observation worksheet, macro-expansion exercise, timing hypotheses, and EnergyTrace protocol.
+
+**Teacher priorities:** (1) Compare short button taps lost by the blocking example with the 10ms sampler. (2) Demonstrate the Timer_A ISR only increments `ticks_ms`; the CPU performs LED, debounce, and UART tasks in its ordinary main loop. (3) Have students expand `RUN_EVERY(job, now, task)` into its function and `if` statements and end at `P1OUT ^= BIT0`. (4) On G2ET, run EnergyTrace with identical task load and change only `IDLE_LOW_POWER` to test active vs LPM0.
+
+**Lesson 11 validation:** All four new C entry points pass host GCC syntax checks, and scheduler tests cover tick rollover, task overdue handling, and button events. CCS/board hardware validation and EnergyTrace results remain required before a production-verified claim.

@@ -1,6 +1,6 @@
 # Validation summary and target qualification checklist
 
-**Build status (2026-10-21):** All ten lesson C sources, four sensor appendices and three evolution variants passed GCC C99 **host syntax-only** checks with a simulated header (`python3 tools/check_sources.py`: **17/17 PASS**). This is a parsing check, not a Texas Instruments compiler build, and does not prove correct peripheral function or flash/RAM fit.
+**Build status (2026-10-21):** All ten original lesson C sources, four new Lesson 11 stages, four sensor appendices and three evolution variants passed GCC C99 **host syntax-only** checks with a simulated header (`python3 tools/check_sources.py`: **21/21 PASS**). This is a parsing check, not a Texas Instruments compiler build, and does not prove correct peripheral function or flash/RAM fit.
 
 **Not yet verified:** TI MSP430 target compiler, CCS 21 IDE project import, flash/debug on G2 and G2ET, UART bridge drivers/baud across both board variants, ADC correctness, Timer_A vectors and PWM pin mapping, HX711 sampling and sign extension, HC-SR04 timing/wiring, VL6180X startup I2C and optical ranging.
 
@@ -20,3 +20,15 @@
 - [ ] Check final linker flash/RAM usage on the MSP430G2553 (16KB flash, 512B RAM).
 
 Report test results and environment before presenting this as a production-validated teaching release.
+
+
+## Lesson 11 additional checks (2026-10-21)
+
+- [x] Four new C entry points passed GCC C99 syntax with mock device header.
+- [x] Ten deterministic tests passed for periodic timing, unsigned tick rollover, overrun behavior and debounce.
+- [x] Four TI `.projectspec` XML files parse correctly.
+- [ ] Import each `.projectspec` in CCS 21, compile/link with MSP430G2553 TI toolchain, flash and exercise.
+- [ ] Check UART telemetry and button count on old G2 and newer G2ET.
+- [ ] Verify EnergyTrace measurements on G2ET in active and LPM0 variants; log current, power and energy with units.
+
+Host checks do not establish behavior on physical hardware.

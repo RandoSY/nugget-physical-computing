@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectSpec>
+  <project name="MSP430_L11_01_Blocking" device="MSP430G2553" launchWizard="False" description="MSP430G2553 Learning Labs Lesson 11 01-blocking; standalone educational C source">
+    <file action="copy" path="main.c" targetDirectory="." />
+    <file action="copy" path="edu430.h" targetDirectory="." />
+  </project>
+</projectSpec>
