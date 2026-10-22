@@ -1,77 +1,95 @@
-# Nugget Physical Computing
+<img src="assets/logo.svg" width="520" alt="MSP430 Learning Labs: From Bits to Behavior" />
 
-Nugget is the low-cost physical-computing learning ladder: a progression that makes computation increasingly visible before hiding it behind convenience.
+# MSP430G2553 Learning Labs — From Bits to Behavior
 
-## Learning ladder
+**Eleven carefully staged bare-metal C lessons (including a cooperative multitasking extension), four inquiry STEM measurement appendices, and an extensively documented teacher's guide.** Runs on the MSP430G2553 MCU in the old **MSP-EXP430G2** and newer **MSP-EXP430G2ET** LaunchPads, subject to differing legacy USB debugger support and jumper settings.
 
-A representative sequence is:
+<img src="assets/progression.svg" width="960" alt="Each beginner-friendly command expands to familiar C register operations" />
 
-1. **555 timer + 7400-series logic** — timing, state, gates, visible signals.
-2. **Simple processor simulation** — instruction execution and machine state made observable.
-3. **PIC / AVR 8-bit microcontrollers** — small systems close to the hardware.
-4. **Arduino Uno + Multi-Function Shield** — fast access to buttons, LEDs, display, buzzer, ADC, and serial interaction.
-5. **RP2040 instrumentation** — logic-analyzer/scope-style work and programmable I/O.
-6. **Pico / Pico W / ESP32-class systems** — richer connected physical computing when the need is established.
+## The educational strategy: let the source code gestate
 
-The exact board is secondary. The durable asset is the progression from understandable mechanism to useful abstraction.
+1. **Observe** a real thing (LED, button, PWM waveform, serial reading, sensor value).
+2. **Name** the thing using beginner-friendly code: `LED_ON(LED_A);`.
+3. **Reveal** the simple general-purpose macro: `SET_BITS(P1OUT, BIT0);`.
+4. **Expand** it into the exact hardware statement: `P1OUT |= BIT0;`.
+5. **Investigate** which register is read or written and why the bit mask matters.
+6. **Refactor** wisely: retain macros for one-line bit manipulations, use ordinary C functions for stateful hardware operations and safety checks.
+7. **Transfer** the idea to another MCU, keeping conceptual intent while changing the register implementation.
 
-## Design principles
+The macros are not a proprietary runtime and do not hide the bare metal. They are teaching scaffolding that can be progressively removed. The learner sees the complete path from meaning to mechanism.
 
-- Start with behavior the learner can see.
-- Name examples by what they do.
-- Keep the smallest runnable example small.
-- Introduce libraries only when they buy real capability.
-- Preserve command-line and low-level paths where they teach something useful.
-- Prefer inexpensive hardware that a learner can own and repeat experiments with.
+## Four stages of the same LED experiment
 
-## Related work
+[Study the progression](evolution/four-mode-led-patterns/README.md): register statements → generic bit macros → named actions → separated functional design. This is the central pedagogical artifact, not just a renamed source file. Run each version and compare actual GPIO behavior.
 
-Nugget connects naturally to:
+## Lessons
 
-- `nugget-fwlib` and low-level firmware exercises;
-- PIC, AVR, CH32, RP2040, and Arduino examples;
-- Forth/processor observatories in [computing-observatories](https://github.com/RandoSY/computing-observatories);
-- programmers and debugging infrastructure in [embedded-tools](https://github.com/RandoSY/embedded-tools);
-- SDL endpoints in [software-defined-laboratory](https://github.com/RandoSY/software-defined-laboratory).
+| Lab | Focus | Hardware |
+| --- | --- | --- |
+| [01 Blink](lessons/01-blink) | Direction and bit masks | LED A |
+| [02 Button](lessons/02-button) | Inputs, pull-ups, debounce | Button + LED |
+| [03 Patterns](lessons/03-patterns) | Modes, branches, state | LEDs + button |
+| [04 Timer](lessons/04-timer) | Timer_A ISR and timebase | LED |
+| [05 Interrupt](lessons/05-interrupt) | Port 1 interrupt | Button + LEDs |
+| [06 PWM](lessons/06-pwm) | Hardware duty cycle | LED B |
+| [07 ADC](lessons/07-adc) | Analog data | 3.3 V potentiometer |
+| [08 UART TX](lessons/08-uart-transmit) | Serial output at 9600 baud | USB virtual COM |
+| [09 UART RX](lessons/09-uart-commands) | Receive commands | USB virtual COM |
+| [10 Telemetry](lessons/10-telemetry) | CSV-based instrument | ADC + button + UART |
+| [11 Tiny Multitasker](lessons/11-tiny-multitasker) | Blocking -> timed jobs -> macro scheduler -> LPM0 | Onboard LEDs, button, UART; optional EnergyTrace |
 
-## Planned repository structure
+**Inquiry STEM appendices:** [A TMP36 temperature](appendices/A-temperature), [B HX711 scale](appendices/B-hx711-scale), [C HC-SR04 ultrasonic](appendices/C-ultrasonic), and [D VL6180X optical ToF + software-I2C](appendices/D-vl6180x-software-i2c) (advanced experimental).
 
-- `00-foundations/`
-- `10-processor-models/`
-- `20-pic-avr/`
-- `30-arduino-mfs/`
-- `40-rp2040/`
-- `50-connected-systems/`
-- `docs/`
-- `validation/`
+## Teacher assets and setup
 
-## Current state
+- [Teacher's Guide (PDF)](docs/Teachers_Guide.pdf) (included in downloadable ZIP; PDF not necessarily tracked in GitHub).
+- [Teacher's Guide text](docs/TEACHERS_GUIDE.md), [assessment rubric](docs/ASSESSMENT_RUBRIC.md).
+- [CCS 21 setup](docs/CCS_SETUP.md), [G2 vs G2ET compatibility](docs/BOARD_COMPATIBILITY.md), [sensors/wiring/calibration](docs/SENSOR_WIRING_AND_CALIBRATION.md).
+- Each lesson folder has a fully standalone `main.c` and an identical project-local `edu430.h`. You need only these two files in a fresh **MSP430G2553** CCS C project. This deliberately avoids incompatible legacy Eclipse project metadata.
 
-**Lifecycle:** `active`
+## Serial and board-specific details
 
-This repository currently defines the canonical learning progression. Existing code and historical examples still need to be curated into this structure, with each migrated example labeled as verified, upstream, historical, or not yet reproduced.
+Use the built-in USB backchannel UART: **P1.1 RXD / P1.2 TXD, 9600 baud, 8N1**, configure the jumpers appropriately on the older board, and open the Windows virtual COM port. The newer G2ET uses eZ-FET; the older G2 debugger may not be supported by recent CCS configurations even though the target firmware is compatible. See the board guide.
 
+**Electrical safety:** MSP430 GPIO uses ~3.3 V; NEVER apply the HC-SR04's 5 V echo directly. The ultrasonic appendix provides a divider. For VL6180X, use a 3.3 V I/O compatible breakout and check its regulator. The HX711 example requires calibration before gram values are meaningful.
 
-## MSP430G2553 — From Bits to Behavior (10-lesson course)
+## Teaching and verification status
 
-The [MSP430G2553 Learning Labs](msp430g2553-learning-labs/README.md) curriculum modernizes register-level LaunchPad examples into a progressive learning sequence: direct registers → generic bit macros → readable hardware commands → small C functions. It includes ten labs, four inquiry-measurement appendices (TMP36, HX711, HC-SR04, VL6180X), a teacher's guide, and wiring guidance for both G2 and G2ET LaunchPads. [Download the corrected complete ZIP](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_10_Lessons_4_Appendices.zip). **17/17 host syntax tests passed; physical and CCS compiler tests still needed.**
+- All programs are provided as commented C sources for MSP430G2553 device headers. Lesson 11 adds four documented stages, CCS ProjectSpec import candidates, a diagram and scheduler logic tests. Host syntax validation sources are included in `tools/`; genuine CCS/board qualification is still pending. See [validation checklist](docs/VALIDATION_AND_HARDWARE_CHECKLIST.md).
+- There are 21/21 automated host-side C syntax checks with a simulated MSP430 header, plus passing Lesson 11 deterministic logic tests; no actual target compiler or physical board was available during package creation.
+- Core lessons 1–10 are **source-ready**; Lesson 11 includes four TI `.projectspec` project-import templates which require CCS verification. The full package is **not hardware-certified**. Before teaching, create a project in your installed CCS 21, compile each lab, and bench-verify both boards and every external sensor.
+- The core code is designed for a calibrated 1 MHz DCO and 512 bytes of RAM.
 
+## Origin, attribution and license
 
-### Lesson 11: MSP430 Tiny Multitasker
-
-The [11-lesson MSP430G2553 Learning Labs curriculum](msp430g2553-learning-labs/README.md) now includes [Lesson 11: A Multitasker You Can Understand](msp430g2553-learning-labs/lessons/11-tiny-multitasker/README.md): blocking C -> explicit Timer_A scheduling -> `RUN_EVERY` macro and a fully inspectable elapsed-time check -> optional LPM0/EnergyTrace comparison. Four stage-specific CCS ProjectSpec templates, an expanded Teacher's Guide, and a [new full-curriculum ZIP](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices.zip) are included. Host checks passed (21/21 source syntax, 10/10 logic tests); MSP430 compiler builds, project imports and physical measurements remain to be verified.
-
-
-### Edu430 FwLib v0.2 — Piconomix-inspired macro library
-
-The [MSP430G2553 course's optional Edu430 FwLib](msp430g2553-learning-labs/fwlib/README.md) extends the *From Bits to Behavior* teaching ladder to GPIO, interrupts, PWM, ADC10, Timer_A, UART, SPI, **both hardware and software I²C**, and the Lesson 11 cooperative scheduler. Includes eight CCS ProjectSpec source examples, an [annotated macro atlas](msp430g2553-learning-labs/fwlib/docs/MACRO_ATLAS.md), and a [standalone download](msp430g2553-learning-labs/downloads/MSP430G2553_Edu430_FwLib_v0_2.zip). Existing 11 lessons are preserved; new bus drivers require CCS/real hardware qualification.
+Educational modernization inspired by [Joel Brigida / ADolbyB MSP430G2553 labs](https://github.com/ADolbyB/msp430g2553-labs) (notably `C-Lang/LEDs/OnBoard-LED-Pattern.c`, 2021), which is GPLv3. This adaptation is GPL-3.0; see [sources and attribution](docs/SOURCES_AND_LICENSE.md). Independent from TI and ST. Preserve source lineage while making original bit-register behavior teachable.
 
 
-### Edu430 expert manual
+## Optional Edu430 FwLib — Piconomix-inspired macro atlas (v0.2)
 
-[**Edu430 FwLib v0.2 — User / Programmer / Instructor Guide (PDF, 28 pages)**](msp430g2553-learning-labs/fwlib/docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf). Complete macro/inline-function reference, CCS quick starts, board resource conflicts, eight STEM teaching sessions and honest qualification notes.
+**[Explore Edu430 FwLib](fwlib/README.md)**: a 14-header, no-RTOS support layer
+for GPIO, pull-ups, interrupts, Timer_A, PWM, ADC10, Comparator_A+, clock,
+watchdog, UART, SPI, both hardware and software I²C, button debounce,
+and periodic jobs.  The API always explains the corresponding raw registers.
+
+This optional expansion does **not modify or replace Lessons 1–11**.
+The new examples each ship with a self-contained CCS `.projectspec` candidate
+and local header copies.  See [Macro Atlas](fwlib/docs/MACRO_ATLAS.md),
+[CCS guide](fwlib/docs/CCS_GUIDE.md), and [Historical origins](fwlib/docs/ORIGINS.md).
+
+The library's host syntax tests are separate from the prior lesson tests;
+UART/SPI/I²C require bench verification and proper 3.3 V pin wiring.
+[Full curriculum + FwLib ZIP](downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_FwLib.zip)
+and [FwLib standalone ZIP](downloads/MSP430G2553_Edu430_FwLib_v0_2.zip) are available.
 
 
-### Hardware-I²C optical ranging exemplar for Edu430
+## Hardware I2C and ST optical ToF exemplar
 
-The [VL6180X reference](msp430g2553-learning-labs/fwlib/docs/ST_VL6180X_EXEMPLAR.md) extends the MSP430G2553 teaching library with USCI_B0 I²C, repeated START, 16-bit register addressing, sensor identity and initialization, and UART data collection. [Standalone v0.3 example](msp430g2553-learning-labs/downloads/Edu430_VL6180X_Hardware_I2C_Exemplar_v0_3.zip) · [Full updated curriculum](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_I2C_Exemplar.zip). Source and simulated-sensor checks passed; device-level hardware qualification remains to be done.
+An optional [VL6180X hardware-I2C exemplar](fwlib/examples/09-vl6180x-hardware-i2c/README.md) extends the library with a general repeated-START bus transaction and **16-bit register addressing**. It retains the existing [software-I2C optical appendix](appendices/D-vl6180x-software-i2c/README.md) as an alternative for comparison. See [teacher notes](fwlib/docs/ST_VL6180X_EXEMPLAR.md). Hardware qualification remains required.
+
+
+## Integrated assembly + PDP-11 curriculum
+
+[**Start the unified 16-week course here**](curriculum/README.md). The course connects all eleven C lessons, four inquiry STEM appendices, Edu430 register/macro drivers, cooperative scheduling and the recovered **30 upstream MSP430 assembly examples**. It adds two annotated C/assembly bridge labs, PDP-11 ISA comparisons, weekly plans, assessment and an instructor handbook.
+
+The preserved originals are at [historical/original-assembly/Assembly-Lang](historical/original-assembly/Assembly-Lang) in the GitHub release; 30/30 blobs matched upstream. Differentiate unchanged archival sources from the new student bridge code. The GitHub branch ZIP provides the complete recovered assembly set.

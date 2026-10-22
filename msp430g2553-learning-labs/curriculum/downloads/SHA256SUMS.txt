@@ -1,0 +1,2 @@
+d6f995f852661afd624051608055fbb6bfb8c2155625d40a1786f6effd0d0674  MSP430G2553_Curriculum_PDP11_Assembly_Bridge_Addendum.zip
+4d3b4ee23c103ccd8930e2dcda133d9ff7e6adeebe77a7fa70a37b0a7f17f873  ../docs/INSTRUCTOR_GUIDE_2026.pdf

@@ -1,0 +1,130 @@
+[
+  {
+    "week": 1,
+    "title": "Observe, power, and bit-level thinking",
+    "c_lab": "01-blink",
+    "original_asm": "SimpleVariables.asm",
+    "goal": "Watch a GPIO bit change; inspect P1DIR/P1OUT",
+    "equipment": "LED and board identity"
+  },
+  {
+    "week": 2,
+    "title": "A machine built from registers",
+    "c_lab": "02-button",
+    "original_asm": "SampleInstructionSet.asm",
+    "goal": "Trace MOV, BIS, BIC; compare PDP-11 register naming",
+    "equipment": "Button pull-up and LED"
+  },
+  {
+    "week": 3,
+    "title": "Input, decisions and debouncing",
+    "c_lab": "03-patterns",
+    "original_asm": "Exercises/Lab2.asm",
+    "goal": "Poll and debounce; test state transitions",
+    "equipment": "Button and two LEDs"
+  },
+  {
+    "week": 4,
+    "title": "Arithmetic, flags and conditional branches",
+    "c_lab": "05-interrupt",
+    "original_asm": "Count-Binary-1s/CountBinary-1s.asm",
+    "goal": "Build a flags truth table; compare C and assembly",
+    "equipment": "Single-step assembly"
+  },
+  {
+    "week": 5,
+    "title": "Loops, shifts and algorithm equivalence",
+    "c_lab": "03-patterns",
+    "original_asm": "Multiplier/MultiplierShiftAdd.asm",
+    "goal": "Implement shift-add multiplication in C and ASM",
+    "equipment": "Debugger/register inspection"
+  },
+  {
+    "week": 6,
+    "title": "Addresses, arrays and memory",
+    "c_lab": "10-telemetry",
+    "original_asm": "Array-Functions/FindMinArrayIndex.asm",
+    "goal": "Trace direct, indirect, indexed and autoincrement",
+    "equipment": "Memory browser"
+  },
+  {
+    "week": 7,
+    "title": "Timers, interrupts and real time",
+    "c_lab": "04-timer",
+    "original_asm": "Flip-Bits-R5-R6/FlipBits-R5-R6.asm",
+    "goal": "Measure timer interrupt timing; study status register",
+    "equipment": "LED, Timer_A"
+  },
+  {
+    "week": 8,
+    "title": "PWM, clocks and power",
+    "c_lab": "06-pwm",
+    "original_asm": "SampleInstructionSet.asm",
+    "goal": "Duty cycle and EnergyTrace comparison",
+    "equipment": "LED, timer, optional G2ET"
+  },
+  {
+    "week": 9,
+    "title": "Stacks, calls and subroutines",
+    "c_lab": "08-uart-transmit",
+    "original_asm": "N-Factorial/CalcN-Factorial.asm",
+    "goal": "Stack snapshots at CALL and RET; compare PDP-11",
+    "equipment": "Debugger, UART"
+  },
+  {
+    "week": 10,
+    "title": "ADC and numerical measurement",
+    "c_lab": "07-adc",
+    "original_asm": "Exercises/MathInAssy-v1.asm",
+    "goal": "Report ADC counts and volts with assumptions",
+    "equipment": "Potentiometer, TMP36 optional"
+  },
+  {
+    "week": 11,
+    "title": "Serial protocol as scientific instrument",
+    "c_lab": "09-uart-commands",
+    "original_asm": "Sequence-Detection/SequenceDetection-Final.asm",
+    "goal": "Design a command and data reporting grammar",
+    "equipment": "UART backchannel"
+  },
+  {
+    "week": 12,
+    "title": "SPI and I2C: reusable buses",
+    "c_lab": "08-uart-transmit",
+    "original_asm": "Exercises/Lab3-v1.asm",
+    "goal": "Identify START, address, ACK and repeated START",
+    "equipment": "I2C device / SPI flash optional"
+  },
+  {
+    "week": 13,
+    "title": "Optical time-of-flight exemplar",
+    "c_lab": "10-telemetry",
+    "original_asm": "Sequence-Detection/SequenceDetectionBytes.asm",
+    "goal": "Read VL6180X model ID, initialize and measure",
+    "equipment": "VL6180X on USCI_B0"
+  },
+  {
+    "week": 14,
+    "title": "Measurement science and calibration",
+    "c_lab": "10-telemetry",
+    "original_asm": "Array-Functions/AddTwoArrays.asm",
+    "goal": "Compare scale, temp and ultrasonic uncertainty",
+    "equipment": "TMP36, HX711, HC-SR04"
+  },
+  {
+    "week": 15,
+    "title": "Cooperative concurrency and low power",
+    "c_lab": "11-tiny-multitasker",
+    "original_asm": "Exercises/LabFinal.asm",
+    "goal": "Measure jitter, latency, EnergyTrace where available",
+    "equipment": "Three concurrent tasks"
+  },
+  {
+    "week": 16,
+    "title": "PDP-11 comparative capstone",
+    "c_lab": "11-tiny-multitasker",
+    "original_asm": "SampleInstructionSet.asm",
+    "goal": "Translate machine behaviors, present a documented instrument",
+    "equipment": "Capstone demonstration"
+  }
+]
