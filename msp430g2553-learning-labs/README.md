@@ -63,3 +63,21 @@ Use the built-in USB backchannel UART: **P1.1 RXD / P1.2 TXD, 9600 baud, 8N1**, 
 ## Origin, attribution and license
 
 Educational modernization inspired by [Joel Brigida / ADolbyB MSP430G2553 labs](https://github.com/ADolbyB/msp430g2553-labs) (notably `C-Lang/LEDs/OnBoard-LED-Pattern.c`, 2021), which is GPLv3. This adaptation is GPL-3.0; see [sources and attribution](docs/SOURCES_AND_LICENSE.md). Independent from TI and ST. Preserve source lineage while making original bit-register behavior teachable.
+
+
+## Optional Edu430 FwLib — Piconomix-inspired macro atlas (v0.2)
+
+**[Explore Edu430 FwLib](fwlib/README.md)**: a 14-header, no-RTOS support layer
+for GPIO, pull-ups, interrupts, Timer_A, PWM, ADC10, Comparator_A+, clock,
+watchdog, UART, SPI, both hardware and software I²C, button debounce,
+and periodic jobs.  The API always explains the corresponding raw registers.
+
+This optional expansion does **not modify or replace Lessons 1–11**.
+The new examples each ship with a self-contained CCS `.projectspec` candidate
+and local header copies.  See [Macro Atlas](fwlib/docs/MACRO_ATLAS.md),
+[CCS guide](fwlib/docs/CCS_GUIDE.md), and [Historical origins](fwlib/docs/ORIGINS.md).
+
+The library's host syntax tests are separate from the prior lesson tests;
+UART/SPI/I²C require bench verification and proper 3.3 V pin wiring.
+[Full curriculum + FwLib ZIP](downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_FwLib.zip)
+and [FwLib standalone ZIP](downloads/MSP430G2553_Edu430_FwLib_v0_2.zip) are available.

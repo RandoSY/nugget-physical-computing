@@ -60,3 +60,8 @@ The [MSP430G2553 Learning Labs](msp430g2553-learning-labs/README.md) curriculum 
 ### Lesson 11: MSP430 Tiny Multitasker
 
 The [11-lesson MSP430G2553 Learning Labs curriculum](msp430g2553-learning-labs/README.md) now includes [Lesson 11: A Multitasker You Can Understand](msp430g2553-learning-labs/lessons/11-tiny-multitasker/README.md): blocking C -> explicit Timer_A scheduling -> `RUN_EVERY` macro and a fully inspectable elapsed-time check -> optional LPM0/EnergyTrace comparison. Four stage-specific CCS ProjectSpec templates, an expanded Teacher's Guide, and a [new full-curriculum ZIP](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices.zip) are included. Host checks passed (21/21 source syntax, 10/10 logic tests); MSP430 compiler builds, project imports and physical measurements remain to be verified.
+
+
+### Edu430 FwLib v0.2 — Piconomix-inspired macro library
+
+The [MSP430G2553 course's optional Edu430 FwLib](msp430g2553-learning-labs/fwlib/README.md) extends the *From Bits to Behavior* teaching ladder to GPIO, interrupts, PWM, ADC10, Timer_A, UART, SPI, **both hardware and software I²C**, and the Lesson 11 cooperative scheduler. Includes eight CCS ProjectSpec source examples, an [annotated macro atlas](msp430g2553-learning-labs/fwlib/docs/MACRO_ATLAS.md), and a [standalone download](msp430g2553-learning-labs/downloads/MSP430G2553_Edu430_FwLib_v0_2.zip). Existing 11 lessons are preserved; new bus drivers require CCS/real hardware qualification.

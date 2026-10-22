@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<projectSpec>
+  <project name="MSP430_FWLIB_05_software_i2c_bus_scan" device="MSP430G2553" launchWizard="False" description="Edu430 expandable macro support library classroom example">
+    <file action="copy" path="main.c" targetDirectory="." />
+    <file action="copy" path="edu430.h" targetDirectory="." />
+    <file action="copy" path="edu430_adc.h" targetDirectory="." />
+    <file action="copy" path="edu430_bits.h" targetDirectory="." />
+    <file action="copy" path="edu430_gpio.h" targetDirectory="." />
+    <file action="copy" path="edu430_i2c_hw.h" targetDirectory="." />
+    <file action="copy" path="edu430_i2c_soft.h" targetDirectory="." />
+    <file action="copy" path="edu430_scheduler.h" targetDirectory="." />
+    <file action="copy" path="edu430_spi.h" targetDirectory="." />
+    <file action="copy" path="edu430_system.h" targetDirectory="." />
+    <file action="copy" path="edu430_timer.h" targetDirectory="." />
+    <file action="copy" path="edu430_uart.h" targetDirectory="." />
+    <file action="copy" path="edu430_button.h" targetDirectory="." />
+    <file action="copy" path="edu430_comparator.h" targetDirectory="." />
+    <file action="copy" path="edu430_pwm.h" targetDirectory="." />
+  </project>
+</projectSpec>
