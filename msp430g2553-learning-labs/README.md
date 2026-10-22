@@ -81,3 +81,8 @@ The library's host syntax tests are separate from the prior lesson tests;
 UART/SPI/I²C require bench verification and proper 3.3 V pin wiring.
 [Full curriculum + FwLib ZIP](downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_FwLib.zip)
 and [FwLib standalone ZIP](downloads/MSP430G2553_Edu430_FwLib_v0_2.zip) are available.
+
+
+### Edu430 FwLib v0.2 expert guide
+
+[**Download the 28-page expert User / Programmer / Instructor Guide**](fwlib/docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf). Includes the exact 63-macro / 38-function API inventory, heavily annotated examples, both-LaunchPad wiring and pin conflicts, and an instructor curriculum with assessments.

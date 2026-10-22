@@ -89,3 +89,8 @@ code; do not conflate its MIT license with this project's GPL-3.0 license. The s
 learning curriculum adapts the [ADolbyB exercises](https://github.com/ADolbyB/msp430g2553-labs)
 under GPLv3. See `docs/ORIGINS.md`. Copying or adapting library code as part of that
 curriculum retains its GPL-3.0 distribution obligations.
+
+
+## Illustrated expert manual (v0.2)
+
+**[Read or download the 28-page Edu430 FwLib v0.2 User / Programmer / Instructor Guide](docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf)**. This companion manual provides installation and CCS setup, the complete verified-against-source inventory of **63 macro definitions and 38 inline functions**, GPIO-to-register teaching diagrams, peripheral use and pin conflict tables, serial/SPI/hardware and software-I²C teaching procedures, eight inquiry-based sessions, assessment rubrics, troubleshooting, and a qualification checklist. It is a *teaching preview*: host syntax tests are not evidence of hardware bus compliance or project-import qualification.

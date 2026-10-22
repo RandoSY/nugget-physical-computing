@@ -65,3 +65,8 @@ The [11-lesson MSP430G2553 Learning Labs curriculum](msp430g2553-learning-labs/R
 ### Edu430 FwLib v0.2 — Piconomix-inspired macro library
 
 The [MSP430G2553 course's optional Edu430 FwLib](msp430g2553-learning-labs/fwlib/README.md) extends the *From Bits to Behavior* teaching ladder to GPIO, interrupts, PWM, ADC10, Timer_A, UART, SPI, **both hardware and software I²C**, and the Lesson 11 cooperative scheduler. Includes eight CCS ProjectSpec source examples, an [annotated macro atlas](msp430g2553-learning-labs/fwlib/docs/MACRO_ATLAS.md), and a [standalone download](msp430g2553-learning-labs/downloads/MSP430G2553_Edu430_FwLib_v0_2.zip). Existing 11 lessons are preserved; new bus drivers require CCS/real hardware qualification.
+
+
+### Edu430 expert manual
+
+[**Edu430 FwLib v0.2 — User / Programmer / Instructor Guide (PDF, 28 pages)**](msp430g2553-learning-labs/fwlib/docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf). Complete macro/inline-function reference, CCS quick starts, board resource conflicts, eight STEM teaching sessions and honest qualification notes.
