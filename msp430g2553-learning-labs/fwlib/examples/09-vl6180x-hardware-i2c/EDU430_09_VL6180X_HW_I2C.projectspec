@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='utf-8'?>
+<projectSpec>
+  <project name="EDU430_09_VL6180X_HW_I2C" device="MSP430G2553" launchWizard="False" description="Edu430 optical ToF reference; 16-bit I2C registers, repeated START, error handling">
+    <file action="copy" path="main.c" targetDirectory="." />
+    <file action="copy" path="edu430_system.h" targetDirectory="." />
+    <file action="copy" path="edu430_uart.h" targetDirectory="." />
+    <file action="copy" path="edu430_i2c_reg16.h" targetDirectory="." />
+    <file action="copy" path="edu430_vl6180x.h" targetDirectory="." />
+  </project>
+</projectSpec>

@@ -86,3 +86,8 @@ and [FwLib standalone ZIP](downloads/MSP430G2553_Edu430_FwLib_v0_2.zip) are avai
 ### Edu430 FwLib v0.2 expert guide
 
 [**Download the 28-page expert User / Programmer / Instructor Guide**](fwlib/docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf). Includes the exact 63-macro / 38-function API inventory, heavily annotated examples, both-LaunchPad wiring and pin conflicts, and an instructor curriculum with assessments.
+
+
+## Optional hardware-I²C optical ToF exemplar (Edu430 v0.3 add-on)
+
+The [VL6180X reference experiment](fwlib/examples/09-vl6180x-hardware-i2c/README.md) uses **USCI_B0 hardware I²C**, reusable 8/16-bit register-address transactions, repeated START, and ST-recommended sensor initialization; it complements the existing software-I²C appendix. See the [register-to-wire teacher's guide](fwlib/docs/ST_VL6180X_EXEMPLAR.md). [Standalone ZIP](downloads/Edu430_VL6180X_Hardware_I2C_Exemplar_v0_3.zip) · [Updated complete-course ZIP](downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_I2C_Exemplar.zip). Hardware qualification is still pending; no prior lessons were changed.

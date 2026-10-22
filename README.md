@@ -70,3 +70,8 @@ The [MSP430G2553 course's optional Edu430 FwLib](msp430g2553-learning-labs/fwlib
 ### Edu430 expert manual
 
 [**Edu430 FwLib v0.2 — User / Programmer / Instructor Guide (PDF, 28 pages)**](msp430g2553-learning-labs/fwlib/docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf). Complete macro/inline-function reference, CCS quick starts, board resource conflicts, eight STEM teaching sessions and honest qualification notes.
+
+
+### Hardware-I²C optical ranging exemplar for Edu430
+
+The [VL6180X reference](msp430g2553-learning-labs/fwlib/docs/ST_VL6180X_EXEMPLAR.md) extends the MSP430G2553 teaching library with USCI_B0 I²C, repeated START, 16-bit register addressing, sensor identity and initialization, and UART data collection. [Standalone v0.3 example](msp430g2553-learning-labs/downloads/Edu430_VL6180X_Hardware_I2C_Exemplar_v0_3.zip) · [Full updated curriculum](msp430g2553-learning-labs/downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_I2C_Exemplar.zip). Source and simulated-sensor checks passed; device-level hardware qualification remains to be done.

@@ -94,3 +94,10 @@ curriculum retains its GPL-3.0 distribution obligations.
 ## Illustrated expert manual (v0.2)
 
 **[Read or download the 28-page Edu430 FwLib v0.2 User / Programmer / Instructor Guide](docs/Edu430_FwLib_v0_2_User_Programmer_Instructor_Guide.pdf)**. This companion manual provides installation and CCS setup, the complete verified-against-source inventory of **63 macro definitions and 38 inline functions**, GPIO-to-register teaching diagrams, peripheral use and pin conflict tables, serial/SPI/hardware and software-I²C teaching procedures, eight inquiry-based sessions, assessment rubrics, troubleshooting, and a qualification checklist. It is a *teaching preview*: host syntax tests are not evidence of hardware bus compliance or project-import qualification.
+
+
+## Example 09: VL6180X optical distance over hardware I²C
+
+The [ST VL6180X exemplar](examples/09-vl6180x-hardware-i2c/README.md) adds general USCI_B0 I²C transactions with **16-bit register addresses** and repeated START, with a separate device driver. It demonstrates model-ID checking, ST startup tuning, millimeter ranging, and UART error reporting. Read the [technical and instructor guide](docs/ST_VL6180X_EXEMPLAR.md), including P1.6/LED2 jumper conflicts and 3.3V pullup requirements. **Host tests pass; genuine CCS build and physical bus qualification still required.** The original v0.2 library and eleven lessons are unchanged.
+
+[Download the focused add-on](../downloads/Edu430_VL6180X_Hardware_I2C_Exemplar_v0_3.zip) | [Download the complete curriculum with exemplar](../downloads/MSP430G2553_Learning_Labs_11_Lessons_4_Appendices_Edu430_I2C_Exemplar.zip).
